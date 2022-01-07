@@ -42,10 +42,8 @@ public class Article {
     private String publishedAt;
 
     @OneToMany
-    @JoinColumn(name = "launches_id")
     private List<Launches> launches;
 
     @OneToMany
-    @JoinColumn(name = "events_id")
     private  List<Events> events;
 }
