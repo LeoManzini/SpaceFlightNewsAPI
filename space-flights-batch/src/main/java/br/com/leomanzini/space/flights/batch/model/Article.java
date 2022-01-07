@@ -45,5 +45,5 @@ public class Article {
     private List<Launches> launches;
 
     @OneToMany
-    private  List<Events> events;
+    private List<Events> events;
 }
