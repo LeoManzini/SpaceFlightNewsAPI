@@ -87,8 +87,7 @@ public class ArticleService {
         }
     }
 
-    public static String jsonIntoString(BufferedReader bufferedReader) throws IOException {
-
+    private String jsonIntoString(BufferedReader bufferedReader) throws IOException {
         String response = "";
         String jsonToString = "";
 
