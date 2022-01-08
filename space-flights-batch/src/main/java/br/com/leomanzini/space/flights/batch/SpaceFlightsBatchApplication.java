@@ -18,21 +18,6 @@ public class SpaceFlightsBatchApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-//		Article article = new Article();
-//		article.setFeatured(true);
-//		article.setTitle("Leonardo");
-//		article.setUrl("leonardo.com");
-//		article.setImageUrl("www.leonardo.com");
-//		article.setNewsSite("Google");
-//		article.setSummary("Sumario");
-//		article.setPublishedAt("Hoje");
-//		article.setLaunches(new ArrayList<>());
-//		article.setEvents(new ArrayList<>());
-//		article.getLaunches().add(Launches.builder().id("2000").provider("Eu mesmo").build());
-//		article.getEvents().add(Events.builder().id(1L).provider("Eu mesmo").build());
-//
-//		System.out.println(article);
-//
 		articleService.insertNewArticle();
 	}
 }

@@ -44,6 +44,7 @@ public class ArticleService {
     @Value("${space.flights.api.all.articles}")
     private String allArticles;
 
+    // TODO montar rotina de inserção e verificação de dados existentes na base
     public void insertNewArticle() {
         try {
             List<ArticlesResponseDTO> receivedDtoObject = getSpaceFlightsArticles();
