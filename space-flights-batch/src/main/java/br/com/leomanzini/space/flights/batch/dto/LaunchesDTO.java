@@ -2,16 +2,18 @@ package br.com.leomanzini.space.flights.batch.dto;
 
 import lombok.*;
 
-@Getter
-@Setter
+import javax.validation.constraints.NotEmpty;
+
+@Data
 @Builder
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class LaunchesDTO {
 
+    @NotEmpty
     @EqualsAndHashCode.Include
     private Long id;
+
+    @NotEmpty
     private String provider;
 }
