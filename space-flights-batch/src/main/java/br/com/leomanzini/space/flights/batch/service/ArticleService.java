@@ -5,6 +5,8 @@ import br.com.leomanzini.space.flights.batch.model.Article;
 import br.com.leomanzini.space.flights.batch.repository.ArticleRepository;
 import br.com.leomanzini.space.flights.batch.repository.EventsRepository;
 import br.com.leomanzini.space.flights.batch.repository.LaunchesRepository;
+import br.com.leomanzini.space.flights.batch.utils.ResponseCodes;
+import br.com.leomanzini.space.flights.batch.utils.SystemMessages;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.modelmapper.ModelMapper;
@@ -41,7 +43,6 @@ public class ArticleService {
     @Value("${space.flights.api.all.articles}")
     private String allArticles;
 
-    // TODO colocar service e service impl
     // TODO criar classes utils
     // TODO criar enum para return codes
     // TODO montar rotina de insercao e verificacao de dados existentes na base
@@ -69,8 +70,8 @@ public class ArticleService {
             URL apiUrl = new URL(applicationContext+allArticles);
             HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
 
-            if(apiConnection.getResponseCode() != 200) {
-                throw new RuntimeException("HTTP error code: " + apiConnection.getResponseCode());
+            if(apiConnection.getResponseCode() != ResponseCodes.SUCCESS.getResponseCode()) {
+                throw new RuntimeException(SystemMessages.HTTP_ERROR.getMessage() + apiConnection.getResponseCode());
             }
 
             BufferedReader apiResponse = new BufferedReader(new InputStreamReader(apiConnection.getInputStream()));
