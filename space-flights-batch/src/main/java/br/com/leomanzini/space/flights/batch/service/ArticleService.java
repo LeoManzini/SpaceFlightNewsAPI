@@ -75,16 +75,7 @@ public class ArticleService {
 
     private Integer getSpaceFlightsArticlesCount() throws Exception {
         try {
-            URL apiUrl = new URL(applicationContext+countArticles);
-            HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
-
-            if (apiConnection.getResponseCode() != ResponseCodes.SUCCESS.getResponseCode()) {
-                throw new RuntimeException(SystemMessages.HTTP_ERROR.getMessage() + apiConnection.getResponseCode());
-            }
-
-            BufferedReader apiResponse = new BufferedReader(new InputStreamReader(apiConnection.getInputStream()));
-            String responseJson = jsonIntoString(apiResponse);
-
+            String responseJson = callApi(applicationContext+allArticles);
             Gson gson = new Gson();
             return gson.fromJson(responseJson, Integer.class);
         }  catch (MalformedURLException e) {
@@ -98,16 +89,7 @@ public class ArticleService {
 
     private List<ArticlesResponseDTO> getSpaceFlightsArticles() throws Exception {
         try {
-            URL apiUrl = new URL(applicationContext+allArticles);
-            HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
-
-            if (apiConnection.getResponseCode() != ResponseCodes.SUCCESS.getResponseCode()) {
-                throw new RuntimeException(SystemMessages.HTTP_ERROR.getMessage() + apiConnection.getResponseCode());
-            }
-
-            BufferedReader apiResponse = new BufferedReader(new InputStreamReader(apiConnection.getInputStream()));
-            String responseJson = jsonIntoString(apiResponse);
-
+            String responseJson = callApi(applicationContext+allArticles);
             Gson gson = new Gson();
             Type listType = new TypeToken<List<ArticlesResponseDTO>>(){}.getType();
             return gson.fromJson(responseJson, listType);
@@ -118,6 +100,17 @@ public class ArticleService {
             e.printStackTrace();
             throw new Exception(e.getMessage());
         }
+    }
+
+    private String callApi (String applicationContext) throws IOException {
+        URL apiUrl = new URL(applicationContext+allArticles);
+        HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
+
+        if (apiConnection.getResponseCode() != ResponseCodes.SUCCESS.getResponseCode()) {
+            throw new RuntimeException(SystemMessages.HTTP_ERROR.getMessage() + apiConnection.getResponseCode());
+        }
+        BufferedReader apiResponse = new BufferedReader(new InputStreamReader(apiConnection.getInputStream()));
+        return jsonIntoString(apiResponse);
     }
 
     private String jsonIntoString(BufferedReader bufferedReader) throws IOException {
