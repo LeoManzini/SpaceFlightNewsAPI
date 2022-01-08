@@ -43,6 +43,8 @@ public class ArticleService {
     @Value("${space.flights.api.all.articles}")
     private String allArticles;
 
+    // TODO criar banco de dados remoto
+    // TODO montar documento sql com a inserção histórica
     // TODO montar rotina de insercao e verificacao de dados existentes na base
     // TODO montar rotina de verificacao se a API recebeu novos artigos e persistir os mesmos no banco,
     //  usar tabela a parte para guardar os dados de registros inseridos e um campo na tabela Articles para saber se foi inserido por user ou API
@@ -63,12 +65,43 @@ public class ArticleService {
         }
     }
 
+    public void checkApiArticlesCount() {
+        try {
+            System.out.println("Today API total articles: " + getSpaceFlightsArticlesCount());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Integer getSpaceFlightsArticlesCount() throws Exception {
+        try {
+            URL apiUrl = new URL(applicationContext+countArticles);
+            HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
+
+            if (apiConnection.getResponseCode() != ResponseCodes.SUCCESS.getResponseCode()) {
+                throw new RuntimeException(SystemMessages.HTTP_ERROR.getMessage() + apiConnection.getResponseCode());
+            }
+
+            BufferedReader apiResponse = new BufferedReader(new InputStreamReader(apiConnection.getInputStream()));
+            String responseJson = jsonIntoString(apiResponse);
+
+            Gson gson = new Gson();
+            return gson.fromJson(responseJson, Integer.class);
+        }  catch (MalformedURLException e) {
+            e.printStackTrace();
+            throw new Exception(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new Exception(e.getMessage());
+        }
+    }
+
     private List<ArticlesResponseDTO> getSpaceFlightsArticles() throws Exception {
         try {
             URL apiUrl = new URL(applicationContext+allArticles);
             HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
 
-            if(apiConnection.getResponseCode() != ResponseCodes.SUCCESS.getResponseCode()) {
+            if (apiConnection.getResponseCode() != ResponseCodes.SUCCESS.getResponseCode()) {
                 throw new RuntimeException(SystemMessages.HTTP_ERROR.getMessage() + apiConnection.getResponseCode());
             }
 
@@ -78,7 +111,6 @@ public class ArticleService {
             Gson gson = new Gson();
             Type listType = new TypeToken<List<ArticlesResponseDTO>>(){}.getType();
             return gson.fromJson(responseJson, listType);
-
         } catch (MalformedURLException e) {
             e.printStackTrace();
             throw new Exception(e.getMessage());
