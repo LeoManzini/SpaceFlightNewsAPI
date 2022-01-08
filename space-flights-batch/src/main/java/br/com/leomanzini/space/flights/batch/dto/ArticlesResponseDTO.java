@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SpaceFlightsResponseDTO {
+public class ArticlesResponseDTO {
 
     @NotEmpty
     @EqualsAndHashCode.Include

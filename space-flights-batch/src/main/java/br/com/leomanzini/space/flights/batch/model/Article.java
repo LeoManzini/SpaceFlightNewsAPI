@@ -13,6 +13,7 @@ import java.util.List;
 public class Article {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
 

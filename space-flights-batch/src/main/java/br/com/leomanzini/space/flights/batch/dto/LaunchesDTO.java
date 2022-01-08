@@ -12,7 +12,7 @@ public class LaunchesDTO {
 
     @NotEmpty
     @EqualsAndHashCode.Include
-    private Long id;
+    private String id;
 
     @NotEmpty
     private String provider;
