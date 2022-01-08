@@ -44,7 +44,10 @@ public class ArticleService {
     @Value("${space.flights.api.all.articles}")
     private String allArticles;
 
-    // TODO montar rotina de inserção e verificação de dados existentes na base
+    // TODO montar rotina de insercao e verificacao de dados existentes na base
+    // TODO montar rotina de verificacao se a API recebeu novos artigos e persistir os mesmos no banco,
+    //  usar tabela a parte para guardar os dados de registros inseridos e um campo na tabela Articles para saber se foi inserido por user ou API
+    // TODO adicionar disparos de emails com relatorios de execucoes da rotina, caso de certo ou nao
     public void insertNewArticle() {
         try {
             List<ArticlesResponseDTO> receivedDtoObject = getSpaceFlightsArticles();
