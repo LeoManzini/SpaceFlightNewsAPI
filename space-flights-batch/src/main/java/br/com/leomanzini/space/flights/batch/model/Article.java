@@ -20,19 +20,19 @@ public class Article {
     @Column(nullable = false)
     private Boolean featured;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length=10485760)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length=10485760)
     private String url;
 
-    @Column(name = "image_url", nullable = false)
+    @Column(name = "image_url", nullable = false, length=10485760)
     private String imageUrl;
 
-    @Column(name = "news_site", nullable = false)
+    @Column(name = "news_site", nullable = false, length=10485760)
     private String newsSite;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length=10485760)
     private String summary;
 
     @Column(name = "published_at", nullable = false)

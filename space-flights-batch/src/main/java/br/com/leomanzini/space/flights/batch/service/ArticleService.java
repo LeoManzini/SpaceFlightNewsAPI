@@ -8,6 +8,7 @@ import br.com.leomanzini.space.flights.batch.repository.ArticleRepository;
 import br.com.leomanzini.space.flights.batch.repository.EventsRepository;
 import br.com.leomanzini.space.flights.batch.repository.LaunchesRepository;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,12 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class ArticleService {
@@ -43,38 +46,40 @@ public class ArticleService {
 
     public void insertNewArticle() {
         try {
-            ArticlesResponseDTO receivedDtoObject = getSpaceFlightsArticles();
-            Article insertObject = new Article();
+            List<ArticlesResponseDTO> receivedDtoObject = getSpaceFlightsArticles();
+            receivedDtoObject.forEach(item -> {
+                Article insertObject = new Article();
 
-            insertObject.setId(receivedDtoObject.getId());
-            insertObject.setFeatured(receivedDtoObject.getFeatured());
-            insertObject.setTitle(receivedDtoObject.getTitle());
-            insertObject.setUrl(receivedDtoObject.getUrl());
-            insertObject.setImageUrl(receivedDtoObject.getImageUrl());
-            insertObject.setNewsSite(receivedDtoObject.getNewsSite());
-            insertObject.setSummary(receivedDtoObject.getSummary());
-            insertObject.setPublishedAt(receivedDtoObject.getPublishedAt());
+                insertObject.setId(item.getId());
+                insertObject.setFeatured(item.getFeatured());
+                insertObject.setTitle(item.getTitle());
+                insertObject.setUrl(item.getUrl());
+                insertObject.setImageUrl(item.getImageUrl());
+                insertObject.setNewsSite(item.getNewsSite());
+                insertObject.setSummary(item.getSummary());
+                insertObject.setPublishedAt(item.getPublishedAt());
 
-            insertObject.setLaunches(new ArrayList<>());
-            insertObject.setEvents(new ArrayList<>());
+                insertObject.setLaunches(new ArrayList<>());
+                insertObject.setEvents(new ArrayList<>());
 
-            receivedDtoObject.getLaunches().forEach(item -> {
-                insertObject.getLaunches().add(Launches.builder().id(item.getId()).provider(item.getProvider()).build());
+                item.getLaunches().forEach(items -> {
+                    insertObject.getLaunches().add(Launches.builder().id(items.getId()).provider(items.getProvider()).build());
+                });
+
+                item.getEvents().forEach(items -> {
+                    insertObject.getEvents().add(Events.builder().id(items.getId()).provider(items.getProvider()).build());
+                });
+
+                eventsRepository.saveAll(insertObject.getEvents());
+                launchesRepository.saveAll(insertObject.getLaunches());
+                articleRepository.save(insertObject);
             });
-
-            receivedDtoObject.getEvents().forEach(item -> {
-                insertObject.getEvents().add(Events.builder().id(item.getId()).provider(item.getProvider()).build());
-            });
-
-            eventsRepository.saveAll(insertObject.getEvents());
-            launchesRepository.saveAll(insertObject.getLaunches());
-            articleRepository.save(insertObject);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private ArticlesResponseDTO getSpaceFlightsArticles() throws Exception {
+    private List<ArticlesResponseDTO> getSpaceFlightsArticles() throws Exception {
         try {
             URL apiUrl = new URL(applicationContext+allArticles);
             HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
@@ -87,7 +92,8 @@ public class ArticleService {
             String responseJson = jsonIntoString(apiResponse);
 
             Gson gson = new Gson();
-            return gson.fromJson(responseJson, ArticlesResponseDTO.class);
+            Type listType = new TypeToken<List<ArticlesResponseDTO>>(){}.getType();
+            return gson.fromJson(responseJson, listType);
 
         } catch (MalformedURLException e) {
             e.printStackTrace();
