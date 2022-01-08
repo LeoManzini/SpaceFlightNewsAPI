@@ -50,31 +50,12 @@ public class ArticleService {
         try {
             List<ArticlesResponseDTO> receivedDtoObject = getSpaceFlightsArticles();
             receivedDtoObject.forEach(item -> {
-                Article insertObject = modelMapper.map(item, Article.class);
+                Article insertObject = dtoToEntity(item);
                 System.out.println(insertObject);
-//                insertObject.setId(item.getId());
-//                insertObject.setFeatured(item.getFeatured());
-//                insertObject.setTitle(item.getTitle());
-//                insertObject.setUrl(item.getUrl());
-//                insertObject.setImageUrl(item.getImageUrl());
-//                insertObject.setNewsSite(item.getNewsSite());
-//                insertObject.setSummary(item.getSummary());
-//                insertObject.setPublishedAt(item.getPublishedAt());
-//
-//                insertObject.setLaunches(new ArrayList<>());
-//                insertObject.setEvents(new ArrayList<>());
-//
-//                item.getLaunches().forEach(items -> {
-//                    insertObject.getLaunches().add(Launches.builder().id(items.getId()).provider(items.getProvider()).build());
-//                });
-//
-//                item.getEvents().forEach(items -> {
-//                    insertObject.getEvents().add(Events.builder().id(items.getId()).provider(items.getProvider()).build());
-//                });
-//
-//                eventsRepository.saveAll(insertObject.getEvents());
-//                launchesRepository.saveAll(insertObject.getLaunches());
-//                articleRepository.save(insertObject);
+
+//              eventsRepository.saveAll(insertObject.getEvents());
+//              launchesRepository.saveAll(insertObject.getLaunches());
+//              articleRepository.save(insertObject);
             });
         } catch (Exception e) {
             e.printStackTrace();
@@ -115,5 +96,13 @@ public class ArticleService {
             jsonToString += response;
         }
         return jsonToString;
+    }
+
+    private Article dtoToEntity(ArticlesResponseDTO articleDto) {
+        return modelMapper.map(articleDto, Article.class);
+    }
+
+    private ArticlesResponseDTO entityToDto(Article article) {
+        return modelMapper.map(article, ArticlesResponseDTO.class);
     }
 }
