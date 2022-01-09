@@ -17,7 +17,7 @@ public class FilesWriter {
     @Autowired
     private BufferedWriter bufferedWriter;
 
-    public void writeHistoricalArticleInsertionFile(List<Article> articlesToInsert) {
+    public void writeHistoricalArticleInsertionFile(List<Article> articlesToInsert) throws WriteException {
         writeArticles(articlesToInsert);
     }
 

@@ -1,9 +1,6 @@
 package br.com.leomanzini.space.flights.batch.service;
 
-import br.com.leomanzini.space.flights.batch.exceptions.ArticleException;
-import br.com.leomanzini.space.flights.batch.exceptions.PersistArticleListException;
-import br.com.leomanzini.space.flights.batch.exceptions.RegisterNotFoundException;
-import br.com.leomanzini.space.flights.batch.exceptions.UpdateRoutineException;
+import br.com.leomanzini.space.flights.batch.exceptions.*;
 import br.com.leomanzini.space.flights.batch.model.Article;
 import br.com.leomanzini.space.flights.batch.model.ArticleControl;
 import br.com.leomanzini.space.flights.batch.repository.ArticleControlRepository;
@@ -73,6 +70,28 @@ public class ArticleService {
         } catch (Exception e) {
             e.printStackTrace();
             throw new UpdateRoutineException(SystemMessages.UPDATE_ROUTINE_ERROR.getMessage());
+        }
+    }
+
+    public void executeHistoricalInsertDocumentWrite() throws HistoricalRoutineException {
+        try {
+            long articlesIdCounter = 0L;
+            List<Article> articlesToWrite = new ArrayList<>();
+            while (true) {
+                Article articleToWrite = mapper.dtoToEntity(apiMethods.getSpaceFlightsArticlesById(++articlesIdCounter));
+                if (articleToWrite.getId() == null) {
+                    break;
+                } else {
+                    articlesToWrite.add(articleToWrite);
+                }
+            }
+            filesWriter.writeHistoricalArticleInsertionFile(articlesToWrite);
+        } catch (APIException e) {
+            e.printStackTrace();
+            throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_API_ERROR.getMessage());
+        } catch (WriteException e) {
+            e.printStackTrace();
+            throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_WRITE_ERROR.getMessage());
         }
     }
 

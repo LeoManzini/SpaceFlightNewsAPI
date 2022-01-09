@@ -3,7 +3,7 @@ package br.com.leomanzini.space.flights.batch.utils.beans;
 import br.com.leomanzini.space.flights.batch.dto.ArticlesResponseDTO;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemCodes;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemMessages;
-import br.com.leomanzini.space.flights.batch.exceptions.APINotFoundException;
+import br.com.leomanzini.space.flights.batch.exceptions.APIException;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,24 +28,24 @@ public class SpaceFlightsApi {
     @Value("${space.flights.api.articles.by.id}")
     private String articleById;
 
-    public Integer getSpaceFlightsArticlesCount() throws Exception {
+    public Integer getSpaceFlightsArticlesCount() throws APIException {
         try {
             String responseJson = callApi(applicationContext + countArticles);
             Gson gson = new Gson();
             return gson.fromJson(responseJson, Integer.class);
         } catch (MalformedURLException e) {
             e.printStackTrace();
-            throw new Exception(e.getMessage());
-        } catch (APINotFoundException e) {
+            throw new APIException(e.getMessage());
+        } catch (APIException e) {
             e.printStackTrace();
             return null;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception(e.getMessage());
+            throw new APIException(SystemMessages.NOT_FOUND_ERROR.getMessage());
         }
     }
 
-    public ArticlesResponseDTO getSpaceFlightsArticlesById(Long articleId) throws Exception {
+    public ArticlesResponseDTO getSpaceFlightsArticlesById(Long articleId) throws APIException {
         try {
             String responseJson = callApi(applicationContext +
                     articleById.replace("x", articleId.toString()));
@@ -53,17 +53,17 @@ public class SpaceFlightsApi {
             return gson.fromJson(responseJson, ArticlesResponseDTO.class);
         } catch (MalformedURLException e) {
             e.printStackTrace();
-            throw new Exception(e.getMessage());
-        } catch (APINotFoundException e) {
+            throw new APIException(e.getMessage());
+        } catch (APIException e) {
             e.printStackTrace();
             return new ArticlesResponseDTO();
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception(e.getMessage());
+            throw new APIException(e.getMessage());
         }
     }
 
-    public List<ArticlesResponseDTO> getSpaceFlightsArticles() throws Exception {
+    public List<ArticlesResponseDTO> getSpaceFlightsArticles() throws APIException {
         try {
             String responseJson = callApi(applicationContext + allArticles);
             Gson gson = new Gson();
@@ -72,13 +72,13 @@ public class SpaceFlightsApi {
             return gson.fromJson(responseJson, listType);
         } catch (MalformedURLException e) {
             e.printStackTrace();
-            throw new Exception(e.getMessage());
-        } catch (APINotFoundException e) {
+            throw new APIException(e.getMessage());
+        } catch (APIException e) {
             e.printStackTrace();
             return null;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception(e.getMessage());
+            throw new APIException(e.getMessage());
         }
     }
 
@@ -87,7 +87,7 @@ public class SpaceFlightsApi {
         HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
 
         if (apiConnection.getResponseCode() != SystemCodes.SUCCESS.getCode()) {
-            throw new APINotFoundException(SystemMessages.HTTP_ERROR.getMessage() + apiConnection.getResponseCode());
+            throw new APIException(SystemMessages.HTTP_ERROR.getMessage() + apiConnection.getResponseCode());
         }
         BufferedReader apiResponse = new BufferedReader(new InputStreamReader(apiConnection.getInputStream()));
         return jsonIntoString(apiResponse);
