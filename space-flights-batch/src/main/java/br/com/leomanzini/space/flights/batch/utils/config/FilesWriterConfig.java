@@ -1,14 +1,14 @@
 package br.com.leomanzini.space.flights.batch.utils.config;
 
-import br.com.leomanzini.space.flights.batch.utils.beans.FileWriter;
+import br.com.leomanzini.space.flights.batch.utils.beans.FilesWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class FileWriterConfig {
+public class FilesWriterConfig {
 
     @Bean
-    public FileWriter fileWriter() {
-        return new FileWriter();
+    public FilesWriter fileWriter() {
+        return new FilesWriter();
     }
 }

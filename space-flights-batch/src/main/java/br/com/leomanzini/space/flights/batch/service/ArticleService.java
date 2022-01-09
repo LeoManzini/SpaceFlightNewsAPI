@@ -10,7 +10,8 @@ import br.com.leomanzini.space.flights.batch.repository.ArticleControlRepository
 import br.com.leomanzini.space.flights.batch.repository.ArticleRepository;
 import br.com.leomanzini.space.flights.batch.repository.EventsRepository;
 import br.com.leomanzini.space.flights.batch.repository.LaunchesRepository;
-import br.com.leomanzini.space.flights.batch.utils.beans.ModelMapper;
+import br.com.leomanzini.space.flights.batch.utils.beans.FilesWriter;
+import br.com.leomanzini.space.flights.batch.utils.beans.ModelMapperMethods;
 import br.com.leomanzini.space.flights.batch.utils.beans.SpaceFlightsApi;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemCodes;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemMessages;
@@ -24,9 +25,11 @@ import java.util.List;
 public class ArticleService {
 
     @Autowired
-    private ModelMapper mapper;
+    private ModelMapperMethods mapper;
     @Autowired
     private SpaceFlightsApi apiMethods;
+    @Autowired
+    private FilesWriter filesWriter;
 
     @Autowired
     private ArticleRepository articleRepository;
@@ -45,6 +48,21 @@ public class ArticleService {
     // TODO montar rotina de verificacao se a API recebeu novos artigos e persistir os mesmos no banco,
     //  usar tabela a parte para guardar os dados de registros inseridos e um campo na tabela Articles para saber se foi inserido por user ou API
     // TODO adicionar disparos de emails com relatorios de execucoes da rotina, caso de certo ou nao
+
+    public void apagarMetodo() throws Exception {
+        Long databaseId = 13433l;
+        List<Article> articlesToPersist = new ArrayList<>();
+
+        while (true) {
+            Article newArticle = mapper.dtoToEntity(apiMethods.getSpaceFlightsArticlesById(databaseId++));
+            if (newArticle.getId() == null) {
+                break;
+            } else {
+                articlesToPersist.add(newArticle);
+            }
+        }
+        filesWriter.writeHistoricalArticleInsertionFile(articlesToPersist);
+    }
 
     public void executeDatabaseUpdateRoutine() throws UpdateRoutineException {
         try {
