@@ -1,7 +1,10 @@
 package br.com.leomanzini.space.flights.batch.service;
 
 import br.com.leomanzini.space.flights.batch.dto.ArticlesResponseDTO;
+import br.com.leomanzini.space.flights.batch.exceptions.RegisterNotFoundException;
 import br.com.leomanzini.space.flights.batch.model.Article;
+import br.com.leomanzini.space.flights.batch.model.ArticleControl;
+import br.com.leomanzini.space.flights.batch.repository.ArticleControlRepository;
 import br.com.leomanzini.space.flights.batch.repository.ArticleRepository;
 import br.com.leomanzini.space.flights.batch.repository.EventsRepository;
 import br.com.leomanzini.space.flights.batch.repository.LaunchesRepository;
@@ -21,6 +24,7 @@ import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -35,6 +39,8 @@ public class ArticleService {
     private EventsRepository eventsRepository;
     @Autowired
     private LaunchesRepository launchesRepository;
+    @Autowired
+    private ArticleControlRepository articleControlRepository;
 
     @Value("${space.flights.api.context}")
     private String applicationContext;
@@ -42,6 +48,8 @@ public class ArticleService {
     private String countArticles;
     @Value("${space.flights.api.all.articles}")
     private String allArticles;
+    @Value("${space.flights.api.articles.by.id}")
+    private String articleById;
 
     // TODO criar banco de dados remoto
     // TODO montar documento sql com a inserção histórica
@@ -49,13 +57,37 @@ public class ArticleService {
     // TODO montar rotina de verificacao se a API recebeu novos artigos e persistir os mesmos no banco,
     //  usar tabela a parte para guardar os dados de registros inseridos e um campo na tabela Articles para saber se foi inserido por user ou API
     // TODO adicionar disparos de emails com relatorios de execucoes da rotina, caso de certo ou nao
-    public void insertNewArticle() {
-        try {
-            List<ArticlesResponseDTO> receivedDtoObject = getSpaceFlightsArticles();
-            receivedDtoObject.forEach(item -> {
-                Article insertObject = dtoToEntity(item);
-                System.out.println(insertObject);
 
+    public void executeDatabaseUpdateRoutine() {
+        try {
+            Integer countApiArticles = getSpaceFlightsArticlesCount();
+            ArticleControl databaseArticleControl = articleControlRepository.findById(1L).orElseThrow(() ->
+                    new RegisterNotFoundException());
+
+            if (countApiArticles > databaseArticleControl.getArticleCount()) {
+               Long databaseLastId = databaseArticleControl.getLastArticleId();
+               List<Article> articlesToPersist = new ArrayList<>();
+
+               while(true) {
+                   Article newArticle = dtoToEntity(getSpaceFlightsArticlesById(++databaseLastId));
+                   if (newArticle.getId() == null) {
+                       break;
+                   } else {
+                       articlesToPersist.add(newArticle);
+                   }
+               }
+               persistArticleList(articlesToPersist);
+               // criar metodo para envio de relatorio por email sendInsertionReport();
+            } // else { envia um relatorio de base de dados estava atualizada, sem artigos novos na api
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void persistArticleList(List<Article> receivedObject) {
+        try {
+            receivedObject.forEach(item -> {
+                persistArticle(item);
 //              eventsRepository.saveAll(insertObject.getEvents());
 //              launchesRepository.saveAll(insertObject.getLaunches());
 //              articleRepository.save(insertObject);
@@ -65,9 +97,12 @@ public class ArticleService {
         }
     }
 
+    private void persistArticle(Article articleToPersist) {
+    }
+
     public void checkApiArticlesCount() {
         try {
-            System.out.println("Today API total articles: " + getSpaceFlightsArticlesCount());
+            getSpaceFlightsArticlesById(13535L);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -75,10 +110,10 @@ public class ArticleService {
 
     private Integer getSpaceFlightsArticlesCount() throws Exception {
         try {
-            String responseJson = callApi(applicationContext+allArticles);
+            String responseJson = callApi(applicationContext + allArticles);
             Gson gson = new Gson();
             return gson.fromJson(responseJson, Integer.class);
-        }  catch (MalformedURLException e) {
+        } catch (MalformedURLException e) {
             e.printStackTrace();
             throw new Exception(e.getMessage());
         } catch (IOException e) {
@@ -87,11 +122,28 @@ public class ArticleService {
         }
     }
 
+    private ArticlesResponseDTO getSpaceFlightsArticlesById(Long articleId) throws Exception {
+        try {
+            String responseJson = callApi(applicationContext +
+                    articleById.replace("x", articleId.toString()));
+            Gson gson = new Gson();
+            return gson.fromJson(responseJson, ArticlesResponseDTO.class);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            throw new Exception(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Criar catch especializado
+            return new ArticlesResponseDTO();
+        }
+    }
+
     private List<ArticlesResponseDTO> getSpaceFlightsArticles() throws Exception {
         try {
-            String responseJson = callApi(applicationContext+allArticles);
+            String responseJson = callApi(applicationContext + allArticles);
             Gson gson = new Gson();
-            Type listType = new TypeToken<List<ArticlesResponseDTO>>(){}.getType();
+            Type listType = new TypeToken<List<ArticlesResponseDTO>>() {
+            }.getType();
             return gson.fromJson(responseJson, listType);
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -102,12 +154,12 @@ public class ArticleService {
         }
     }
 
-    private String callApi (String applicationContext) throws IOException {
-        URL apiUrl = new URL(applicationContext+allArticles);
+    private String callApi(String applicationContext) throws IOException {
+        URL apiUrl = new URL(applicationContext);
         HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
 
         if (apiConnection.getResponseCode() != ResponseCodes.SUCCESS.getResponseCode()) {
-            throw new RuntimeException(SystemMessages.HTTP_ERROR.getMessage() + apiConnection.getResponseCode());
+            throw new IOException(SystemMessages.HTTP_ERROR.getMessage() + apiConnection.getResponseCode());
         }
         BufferedReader apiResponse = new BufferedReader(new InputStreamReader(apiConnection.getInputStream()));
         return jsonIntoString(apiResponse);
