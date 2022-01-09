@@ -52,9 +52,11 @@ public class ArticleService {
     @Value("${space.flights.api.articles.by.id}")
     private String articleById;
 
-    // TODO criar banco de dados remoto
+    /*
+    Criado banco de dados remoto, subir aplicação e configurar o mesmo
+    postgres://hiqjjdrvhiwboc:9621d87429585c150358346dea0fd68916ea47c4f3bd21df2a6a74f895764c9c@ec2-3-231-253-230.compute-1.amazonaws.com:5432/d6pl91qj1um1rv
+     */
     // TODO montar documento sql com a inserção histórica
-    // TODO montar rotina de insercao e verificacao de dados existentes na base
     // TODO montar rotina de verificacao se a API recebeu novos artigos e persistir os mesmos no banco,
     //  usar tabela a parte para guardar os dados de registros inseridos e um campo na tabela Articles para saber se foi inserido por user ou API
     // TODO adicionar disparos de emails com relatorios de execucoes da rotina, caso de certo ou nao
@@ -78,6 +80,7 @@ public class ArticleService {
                     }
                 }
                 persistArticleList(articlesToPersist);
+                updateArticleControl(databaseArticleControl, countApiArticles, --databaseLastId);
                 // criar metodo para envio de relatorio por email sendInsertionReport();
             } // else { envia um relatorio de base de dados estava atualizada, sem artigos novos na api
         } catch (Exception e) {
@@ -86,15 +89,24 @@ public class ArticleService {
         }
     }
 
+    private void updateArticleControl(ArticleControl databaseArticleControl, Integer countApiArticles, Long lastId) {
+        databaseArticleControl.setArticleCount(countApiArticles.longValue());
+        databaseArticleControl.setLastArticleId(lastId);
+
+        articleControlRepository.saveAndFlush(databaseArticleControl);
+    }
+
     private void persistArticleList(List<Article> receivedObject) throws PersistArticleListException {
         try {
-            receivedObject.forEach(articleToPersist -> {
-                try {
-                    persistArticle(articleToPersist);
-                } catch (ArticleException e) {
-                    e.printStackTrace();
-                }
-            });
+            if (!receivedObject.isEmpty()) {
+                receivedObject.forEach(articleToPersist -> {
+                    try {
+                        persistArticle(articleToPersist);
+                    } catch (ArticleException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
         } catch (Exception e) {
             e.printStackTrace();
             throw new PersistArticleListException(SystemMessages.PERSIST_ARTICLE_LIST_ERROR.getMessage());
