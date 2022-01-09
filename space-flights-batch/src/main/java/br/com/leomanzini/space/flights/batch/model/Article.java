@@ -13,7 +13,6 @@ import java.util.List;
 public class Article {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
 
@@ -38,9 +37,9 @@ public class Article {
     @Column(name = "published_at", nullable = false)
     private String publishedAt;
 
-    @OneToMany
+    @ManyToMany
     private List<Launches> launches;
 
-    @OneToMany
+    @ManyToMany
     private List<Events> events;
 }

@@ -85,21 +85,22 @@ public class ArticleService {
         }
     }
 
-    public void apagarMetodo() throws Exception {
-        Article article = dtoToEntity(getSpaceFlightsArticlesById(13518l));
-        persistArticle(article);
-    }
-
     private void persistArticleList(List<Article> receivedObject) throws PersistArticleListException {
-//        try {
-//            receivedObject.forEach(item -> persistArticle(item));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            throw new PersistArticleListException(SystemMessages.PERSIST_ARTICLE_LIST_ERROR.getMessage());
-//        }
+        try {
+            receivedObject.forEach(articleToPersist -> {
+                try {
+                    persistArticle(articleToPersist);
+                } catch (ArticleException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new PersistArticleListException(SystemMessages.PERSIST_ARTICLE_LIST_ERROR.getMessage());
+        }
     }
 
-    private void persistArticle(Article articleToPersist) throws Exception {
+    private void persistArticle(Article articleToPersist) throws ArticleException {
         if (articleRepository.findById(articleToPersist.getId()).isEmpty()) {
             articleToPersist.getLaunches().forEach(launches -> {
                 if (launchesRepository.findById(launches.getId()).isEmpty()) {
