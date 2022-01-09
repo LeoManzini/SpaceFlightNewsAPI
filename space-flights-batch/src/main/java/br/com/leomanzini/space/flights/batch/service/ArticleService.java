@@ -131,6 +131,7 @@ public class ArticleService {
         }
     }
 
+    // Colocar todas as chamadas de api em uma classe unica
     private Integer getSpaceFlightsArticlesCount() throws Exception {
         try {
             String responseJson = callApi(applicationContext + countArticles);
@@ -206,6 +207,7 @@ public class ArticleService {
         return jsonToString;
     }
 
+    // Colocar os metodos do modelmapper em uma classe utils
     private Article dtoToEntity(ArticlesResponseDTO articleDto) {
         return modelMapper.map(articleDto, Article.class);
     }
