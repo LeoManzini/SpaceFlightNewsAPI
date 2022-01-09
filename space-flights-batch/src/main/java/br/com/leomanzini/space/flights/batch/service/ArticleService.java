@@ -10,10 +10,10 @@ import br.com.leomanzini.space.flights.batch.repository.ArticleControlRepository
 import br.com.leomanzini.space.flights.batch.repository.ArticleRepository;
 import br.com.leomanzini.space.flights.batch.repository.EventsRepository;
 import br.com.leomanzini.space.flights.batch.repository.LaunchesRepository;
-import br.com.leomanzini.space.flights.batch.beans.ModelMapperMethods;
-import br.com.leomanzini.space.flights.batch.beans.SpaceFlightsApiMethods;
-import br.com.leomanzini.space.flights.batch.enums.SystemCodes;
-import br.com.leomanzini.space.flights.batch.enums.SystemMessages;
+import br.com.leomanzini.space.flights.batch.utils.beans.ModelMapperMethods;
+import br.com.leomanzini.space.flights.batch.utils.beans.SpaceFlightsApiMethods;
+import br.com.leomanzini.space.flights.batch.utils.enums.SystemCodes;
+import br.com.leomanzini.space.flights.batch.utils.enums.SystemMessages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

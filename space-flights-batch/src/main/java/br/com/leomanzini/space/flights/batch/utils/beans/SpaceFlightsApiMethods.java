@@ -1,8 +1,8 @@
-package br.com.leomanzini.space.flights.batch.beans;
+package br.com.leomanzini.space.flights.batch.utils.beans;
 
 import br.com.leomanzini.space.flights.batch.dto.ArticlesResponseDTO;
-import br.com.leomanzini.space.flights.batch.enums.SystemCodes;
-import br.com.leomanzini.space.flights.batch.enums.SystemMessages;
+import br.com.leomanzini.space.flights.batch.utils.enums.SystemCodes;
+import br.com.leomanzini.space.flights.batch.utils.enums.SystemMessages;
 import br.com.leomanzini.space.flights.batch.exceptions.APINotFoundException;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

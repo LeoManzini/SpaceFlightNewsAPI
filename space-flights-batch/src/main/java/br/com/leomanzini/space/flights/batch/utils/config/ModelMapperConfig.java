@@ -1,4 +1,4 @@
-package br.com.leomanzini.space.flights.batch.config;
+package br.com.leomanzini.space.flights.batch.utils.config;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;

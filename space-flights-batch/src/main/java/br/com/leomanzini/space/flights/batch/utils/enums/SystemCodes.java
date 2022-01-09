@@ -1,4 +1,4 @@
-package br.com.leomanzini.space.flights.batch.enums;
+package br.com.leomanzini.space.flights.batch.utils.enums;
 
 public enum SystemCodes {
 
