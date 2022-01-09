@@ -7,10 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ModelMapperMethods {
+public class ModelMapper {
 
     @Autowired
-    private ModelMapper modelMapper;
+    private org.modelmapper.ModelMapper modelMapper;
 
     public Article dtoToEntity(ArticlesResponseDTO articleDto) {
         return modelMapper.map(articleDto, Article.class);

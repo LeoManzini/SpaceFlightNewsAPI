@@ -17,7 +17,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
-public class SpaceFlightsApiMethods {
+public class SpaceFlightsApi {
 
     @Value("${space.flights.api.context}")
     private String applicationContext;

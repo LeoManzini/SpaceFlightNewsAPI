@@ -1,14 +1,14 @@
 package br.com.leomanzini.space.flights.batch.utils.config;
 
-import br.com.leomanzini.space.flights.batch.utils.beans.SpaceFlightsApi;
+import br.com.leomanzini.space.flights.batch.utils.beans.FileWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class SpaceFlightsApiConfig {
+public class FileWriterConfig {
 
     @Bean
-    public SpaceFlightsApi spaceFlightsApiMethods() {
-        return new SpaceFlightsApi();
+    public FileWriter fileWriter() {
+        return new FileWriter();
     }
 }

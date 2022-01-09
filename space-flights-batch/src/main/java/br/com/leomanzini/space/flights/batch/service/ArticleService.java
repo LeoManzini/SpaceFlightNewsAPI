@@ -10,8 +10,8 @@ import br.com.leomanzini.space.flights.batch.repository.ArticleControlRepository
 import br.com.leomanzini.space.flights.batch.repository.ArticleRepository;
 import br.com.leomanzini.space.flights.batch.repository.EventsRepository;
 import br.com.leomanzini.space.flights.batch.repository.LaunchesRepository;
-import br.com.leomanzini.space.flights.batch.utils.beans.ModelMapperMethods;
-import br.com.leomanzini.space.flights.batch.utils.beans.SpaceFlightsApiMethods;
+import br.com.leomanzini.space.flights.batch.utils.beans.ModelMapper;
+import br.com.leomanzini.space.flights.batch.utils.beans.SpaceFlightsApi;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemCodes;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemMessages;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +24,9 @@ import java.util.List;
 public class ArticleService {
 
     @Autowired
-    private ModelMapperMethods mapper;
+    private ModelMapper mapper;
     @Autowired
-    private SpaceFlightsApiMethods apiMethods;
+    private SpaceFlightsApi apiMethods;
 
     @Autowired
     private ArticleRepository articleRepository;
