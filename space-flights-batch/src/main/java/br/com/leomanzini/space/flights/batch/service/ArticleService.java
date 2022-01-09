@@ -44,25 +44,9 @@ public class ArticleService {
     Criado banco de dados remoto, subir aplicação e configurar o mesmo
     postgres://hiqjjdrvhiwboc:9621d87429585c150358346dea0fd68916ea47c4f3bd21df2a6a74f895764c9c@ec2-3-231-253-230.compute-1.amazonaws.com:5432/d6pl91qj1um1rv
      */
-    // TODO montar documento sql com a inserção histórica
     // TODO montar rotina de verificacao se a API recebeu novos artigos e persistir os mesmos no banco,
     //  usar tabela a parte para guardar os dados de registros inseridos e um campo na tabela Articles para saber se foi inserido por user ou API
     // TODO adicionar disparos de emails com relatorios de execucoes da rotina, caso de certo ou nao
-
-    public void apagarMetodo() throws Exception {
-        Long databaseId = 13433l;
-        List<Article> articlesToPersist = new ArrayList<>();
-
-        while (true) {
-            Article newArticle = mapper.dtoToEntity(apiMethods.getSpaceFlightsArticlesById(databaseId++));
-            if (newArticle.getId() == null) {
-                break;
-            } else {
-                articlesToPersist.add(newArticle);
-            }
-        }
-        filesWriter.writeHistoricalArticleInsertionFile(articlesToPersist);
-    }
 
     public void executeDatabaseUpdateRoutine() throws UpdateRoutineException {
         try {

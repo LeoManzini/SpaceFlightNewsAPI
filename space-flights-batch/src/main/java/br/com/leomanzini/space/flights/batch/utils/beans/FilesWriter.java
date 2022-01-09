@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FilesWriter {
@@ -19,7 +20,7 @@ public class FilesWriter {
         writeArticles(articlesToInsert);
     }
 
-    private void writeArticles (List<Article> articlesToInsert) {
+    private void writeArticles(List<Article> articlesToInsert) {
         articlesToInsert.forEach(article -> {
             try {
                 writeArticle(article);
@@ -31,29 +32,41 @@ public class FilesWriter {
 
     private void writeArticle(Article article) throws Exception {
         try {
-            String articleInsert = articleToInsertSyntax(article);
-            bufferedWriter.write(articleInsert);
-            bufferedWriter.newLine();
+            write(articleToInsertSyntax(article));
             if (!article.getLaunches().isEmpty()) {
-                String launchesInsert = launchesToInsertSyntax(article.getLaunches());
-                bufferedWriter.write(launchesInsert);
-                bufferedWriter.newLine();
-                String launchesArticleInsert = launchesArticleToInsertSyntax();
-                bufferedWriter.write(launchesArticleInsert);
-                bufferedWriter.newLine();
+                writeLaunches(article.getLaunches());
+                writeLaunchesArticles(article);
             }
             if (!article.getEvents().isEmpty()) {
-                String eventsInsert = eventsToInsertSyntax(article.getEvents());
-                bufferedWriter.write(eventsInsert);
-                bufferedWriter.newLine();
-                String eventsArticleInsert = eventsArticleToInsertSyntax();
-                bufferedWriter.write(eventsArticleInsert);
-                bufferedWriter.newLine();
+                writeEvents(article.getEvents());
+                writeEventsArticles(article);
             }
         } catch (IOException e) {
             e.printStackTrace();
             throw new Exception("Lançar excecao personalizada");
         }
+    }
+
+    private void writeLaunches(List<Launches> launches) throws Exception {
+        List<String> launchesInsert = launchesToInsertSyntax(launches);
+        write(launchesInsert);
+    }
+
+    private void writeLaunchesArticles(Article article) throws Exception {
+        List<String> launchesArticlesInsert = launchesArticleToInsertSyntax(article.getId(),
+                getLaunchesIdList(article.getLaunches()));
+        write(launchesArticlesInsert);
+    }
+
+    private void writeEvents(List<Events> events) {
+        List<String> eventsInsert = eventsToInsertSyntax(events);
+        write(eventsInsert);
+    }
+
+    private void writeEventsArticles(Article article) {
+        List<String> eventsArticlesInsert = eventsArticleToInsertSyntax(article.getId(),
+                getEventsIdList(article.getEvents()));
+        write(eventsArticlesInsert);
     }
 
     private String articleToInsertSyntax (Article article) {
@@ -64,19 +77,79 @@ public class FilesWriter {
                 + "', '" + article.getTitle() + "', '" + article.getUrl() + "');";
     }
 
-    private String launchesToInsertSyntax(List<Launches> launches) {
-        return "";
+    private List<String> launchesToInsertSyntax(List<Launches> launches) {
+        List<String> launchesToWrite = new ArrayList<>();
+        launches.forEach(launch -> {
+            launchesToWrite.add("INSERT INTO launches "
+                    + "(id, provider) "
+                    + "VALUES ('" + launch.getId() + "', '" + launch.getProvider() + "');");
+        });
+        return launchesToWrite;
     }
 
-    private String launchesArticleToInsertSyntax() {
-        return "";
+    private List<String> launchesArticleToInsertSyntax(Long articleId, List<String> launchesId) {
+        List<String> launchesArticlesToWrite = new ArrayList<>();
+        launchesId.forEach(launchId -> {
+            launchesArticlesToWrite.add("INSERT INTO article_launches "
+                    + "(article_id, launches_id) "
+                    + "VALUES (" + articleId + ", '" + launchId + "');");
+        });
+        return launchesArticlesToWrite;
     }
 
-    private String eventsToInsertSyntax(List<Events> events) {
-        return "";
+    private List<String> eventsToInsertSyntax(List<Events> events) {
+        List<String> eventsToWrite = new ArrayList<>();
+        events.forEach(event -> {
+            eventsToWrite.add("INSERT INTO events "
+                    + "(id, provider) "
+                    + "VALUES (" + event.getId() + ", '" + event.getProvider() + "');");
+        });
+        return eventsToWrite;
     }
 
-    private String eventsArticleToInsertSyntax() {
-        return "";
+    private List<String> eventsArticleToInsertSyntax(Long articleId, List<Long> eventsId) {
+        List<String> eventsArticleToWrite = new ArrayList<>();
+        eventsId.forEach(eventId ->{
+            eventsArticleToWrite.add("INSERT INTO article_events "
+                    + "(article_id, events_id) "
+                    + "VALUES (" + articleId + ", " + eventId + ");");
+        });
+        return eventsArticleToWrite;
+    }
+
+    private List<String> getLaunchesIdList(List<Launches> launches) {
+        List<String> launchesId = new ArrayList<>();
+        launches.forEach(launch -> {
+            launchesId.add(launch.getId());
+        });
+        return launchesId;
+    }
+
+    private List<Long> getEventsIdList(List<Events> events) {
+        List<Long> eventsId = new ArrayList<>();
+        events.forEach(event -> {
+            eventsId.add(event.getId());
+        });
+        return eventsId;
+    }
+
+    private void write(String stringToWrite) {
+        try {
+            bufferedWriter.write(stringToWrite);
+            bufferedWriter.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void write(List<String> listToWrite) {
+        listToWrite.forEach(listItem -> {
+            try {
+                bufferedWriter.write(listItem);
+                bufferedWriter.newLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 }
