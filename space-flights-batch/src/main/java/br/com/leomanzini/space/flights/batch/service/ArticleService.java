@@ -84,27 +84,34 @@ public class ArticleService {
         }
     }
 
-    public void persistArticleList(List<Article> receivedObject) {
-        try {
-            receivedObject.forEach(item -> {
-                persistArticle(item);
-//              eventsRepository.saveAll(insertObject.getEvents());
-//              launchesRepository.saveAll(insertObject.getLaunches());
-//              articleRepository.save(insertObject);
+    public void apagarMetodo() throws Exception {
+        Article article = dtoToEntity(getSpaceFlightsArticlesById(13518l));
+        persistArticle(article);
+    }
+
+    private void persistArticleList(List<Article> receivedObject) {
+//        try {
+//            receivedObject.forEach(item -> persistArticle(item));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    private void persistArticle(Article articleToPersist) throws Exception {
+        if (articleRepository.findById(articleToPersist.getId()).isEmpty()) {
+            articleToPersist.getLaunches().forEach(launches -> {
+                if (launchesRepository.findById(launches.getId()).isEmpty()) {
+                    launchesRepository.save(launches);
+                }
             });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void persistArticle(Article articleToPersist) {
-    }
-
-    public void checkApiArticlesCount() {
-        try {
-            getSpaceFlightsArticlesById(13535L);
-        } catch (Exception e) {
-            e.printStackTrace();
+            articleToPersist.getEvents().forEach(events -> {
+                if (eventsRepository.findById(events.getId()).isEmpty()) {
+                    eventsRepository.save(events);
+                }
+            });
+            articleRepository.save(articleToPersist);
+        } else {
+            throw new Exception("Artigo encontrado ba base");
         }
     }
 
@@ -142,8 +149,7 @@ public class ArticleService {
         try {
             String responseJson = callApi(applicationContext + allArticles);
             Gson gson = new Gson();
-            Type listType = new TypeToken<List<ArticlesResponseDTO>>() {
-            }.getType();
+            Type listType = new TypeToken<List<ArticlesResponseDTO>>() {}.getType();
             return gson.fromJson(responseJson, listType);
         } catch (MalformedURLException e) {
             e.printStackTrace();
