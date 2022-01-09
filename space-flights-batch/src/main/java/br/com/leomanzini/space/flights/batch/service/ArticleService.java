@@ -25,6 +25,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -70,7 +71,7 @@ public class ArticleService {
 
                 while (true) {
                     Article newArticle = dtoToEntity(getSpaceFlightsArticlesById(++databaseLastId));
-                    if (newArticle == null) {
+                    if (newArticle.getId() == null) {
                         break;
                     } else {
                         articlesToPersist.add(newArticle);
@@ -120,7 +121,7 @@ public class ArticleService {
 
     private Integer getSpaceFlightsArticlesCount() throws Exception {
         try {
-            String responseJson = callApi(applicationContext + allArticles);
+            String responseJson = callApi(applicationContext + countArticles);
             Gson gson = new Gson();
             return gson.fromJson(responseJson, Integer.class);
         } catch (MalformedURLException e) {
@@ -146,7 +147,7 @@ public class ArticleService {
             throw new Exception(e.getMessage());
         } catch (APINotFoundException e) {
             e.printStackTrace();
-            return null;
+            return new ArticlesResponseDTO();
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception(e.getMessage());
