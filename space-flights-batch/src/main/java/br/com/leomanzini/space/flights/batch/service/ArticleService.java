@@ -1,38 +1,34 @@
 package br.com.leomanzini.space.flights.batch.service;
 
 import br.com.leomanzini.space.flights.batch.dto.ArticlesResponseDTO;
-import br.com.leomanzini.space.flights.batch.exceptions.*;
+import br.com.leomanzini.space.flights.batch.exceptions.ArticleException;
+import br.com.leomanzini.space.flights.batch.exceptions.PersistArticleListException;
+import br.com.leomanzini.space.flights.batch.exceptions.RegisterNotFoundException;
+import br.com.leomanzini.space.flights.batch.exceptions.UpdateRoutineException;
 import br.com.leomanzini.space.flights.batch.model.Article;
 import br.com.leomanzini.space.flights.batch.model.ArticleControl;
 import br.com.leomanzini.space.flights.batch.repository.ArticleControlRepository;
 import br.com.leomanzini.space.flights.batch.repository.ArticleRepository;
 import br.com.leomanzini.space.flights.batch.repository.EventsRepository;
 import br.com.leomanzini.space.flights.batch.repository.LaunchesRepository;
+import br.com.leomanzini.space.flights.batch.utils.ModelMapperMethods;
+import br.com.leomanzini.space.flights.batch.utils.SpaceFlightsApiMethods;
 import br.com.leomanzini.space.flights.batch.utils.SystemCodes;
 import br.com.leomanzini.space.flights.batch.utils.SystemMessages;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @Service
 public class ArticleService {
 
     @Autowired
-    private ModelMapper modelMapper;
+    private ModelMapperMethods mapper;
+    @Autowired
+    private SpaceFlightsApiMethods apiMethods;
 
     @Autowired
     private ArticleRepository articleRepository;
@@ -42,15 +38,6 @@ public class ArticleService {
     private LaunchesRepository launchesRepository;
     @Autowired
     private ArticleControlRepository articleControlRepository;
-
-    @Value("${space.flights.api.context}")
-    private String applicationContext;
-    @Value("${space.flights.api.articles.count}")
-    private String countArticles;
-    @Value("${space.flights.api.all.articles}")
-    private String allArticles;
-    @Value("${space.flights.api.articles.by.id}")
-    private String articleById;
 
     /*
     Criado banco de dados remoto, subir aplicação e configurar o mesmo
@@ -63,7 +50,7 @@ public class ArticleService {
 
     public void executeDatabaseUpdateRoutine() throws UpdateRoutineException {
         try {
-            Integer countApiArticles = getSpaceFlightsArticlesCount();
+            Integer countApiArticles = apiMethods.getSpaceFlightsArticlesCount();
             ArticleControl databaseArticleControl = articleControlRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
                     new RegisterNotFoundException(SystemMessages.DATABASE_NOT_FOUND.getMessage()));
 
@@ -72,7 +59,7 @@ public class ArticleService {
                 List<Article> articlesToPersist = new ArrayList<>();
 
                 while (true) {
-                    Article newArticle = dtoToEntity(getSpaceFlightsArticlesById(++databaseLastId));
+                    Article newArticle = mapper.dtoToEntity(apiMethods.getSpaceFlightsArticlesById(++databaseLastId));
                     if (newArticle.getId() == null) {
                         break;
                     } else {
@@ -87,13 +74,6 @@ public class ArticleService {
             e.printStackTrace();
             throw new UpdateRoutineException(SystemMessages.UPDATE_ROUTINE_ERROR.getMessage());
         }
-    }
-
-    private void updateArticleControl(ArticleControl databaseArticleControl, Integer countApiArticles, Long lastId) {
-        databaseArticleControl.setArticleCount(countApiArticles.longValue());
-        databaseArticleControl.setLastArticleId(lastId);
-
-        articleControlRepository.saveAndFlush(databaseArticleControl);
     }
 
     private void persistArticleList(List<Article> receivedObject) throws PersistArticleListException {
@@ -131,88 +111,10 @@ public class ArticleService {
         }
     }
 
-    // Colocar todas as chamadas de api em uma classe unica
-    private Integer getSpaceFlightsArticlesCount() throws Exception {
-        try {
-            String responseJson = callApi(applicationContext + countArticles);
-            Gson gson = new Gson();
-            return gson.fromJson(responseJson, Integer.class);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            throw new Exception(e.getMessage());
-        } catch (APINotFoundException e) {
-            e.printStackTrace();
-            return null;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new Exception(e.getMessage());
-        }
-    }
+    private void updateArticleControl(ArticleControl databaseArticleControl, Integer countApiArticles, Long lastId) {
+        databaseArticleControl.setArticleCount(countApiArticles.longValue());
+        databaseArticleControl.setLastArticleId(lastId);
 
-    private ArticlesResponseDTO getSpaceFlightsArticlesById(Long articleId) throws Exception {
-        try {
-            String responseJson = callApi(applicationContext +
-                    articleById.replace("x", articleId.toString()));
-            Gson gson = new Gson();
-            return gson.fromJson(responseJson, ArticlesResponseDTO.class);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            throw new Exception(e.getMessage());
-        } catch (APINotFoundException e) {
-            e.printStackTrace();
-            return new ArticlesResponseDTO();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new Exception(e.getMessage());
-        }
-    }
-
-    private List<ArticlesResponseDTO> getSpaceFlightsArticles() throws Exception {
-        try {
-            String responseJson = callApi(applicationContext + allArticles);
-            Gson gson = new Gson();
-            Type listType = new TypeToken<List<ArticlesResponseDTO>>() {
-            }.getType();
-            return gson.fromJson(responseJson, listType);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            throw new Exception(e.getMessage());
-        } catch (APINotFoundException e) {
-            e.printStackTrace();
-            return null;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new Exception(e.getMessage());
-        }
-    }
-
-    private String callApi(String applicationContext) throws Exception {
-        URL apiUrl = new URL(applicationContext);
-        HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
-
-        if (apiConnection.getResponseCode() != SystemCodes.SUCCESS.getCode()) {
-            throw new APINotFoundException(SystemMessages.HTTP_ERROR.getMessage() + apiConnection.getResponseCode());
-        }
-        BufferedReader apiResponse = new BufferedReader(new InputStreamReader(apiConnection.getInputStream()));
-        return jsonIntoString(apiResponse);
-    }
-
-    private String jsonIntoString(BufferedReader bufferedReader) throws IOException {
-        String response = "";
-        String jsonToString = "";
-
-        while ((response = bufferedReader.readLine()) != null) {
-            jsonToString += response;
-        }
-        return jsonToString;
-    }
-
-    // Colocar os metodos do modelmapper em uma classe utils
-    private Article dtoToEntity(ArticlesResponseDTO articleDto) {
-        return modelMapper.map(articleDto, Article.class);
-    }
-
-    private ArticlesResponseDTO entityToDto(Article article) {
-        return modelMapper.map(article, ArticlesResponseDTO.class);
+        articleControlRepository.saveAndFlush(databaseArticleControl);
     }
 }
