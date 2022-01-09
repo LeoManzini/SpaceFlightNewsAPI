@@ -1,6 +1,5 @@
 package br.com.leomanzini.space.flights.batch.service;
 
-import br.com.leomanzini.space.flights.batch.dto.ArticlesResponseDTO;
 import br.com.leomanzini.space.flights.batch.exceptions.ArticleException;
 import br.com.leomanzini.space.flights.batch.exceptions.PersistArticleListException;
 import br.com.leomanzini.space.flights.batch.exceptions.RegisterNotFoundException;
@@ -11,11 +10,10 @@ import br.com.leomanzini.space.flights.batch.repository.ArticleControlRepository
 import br.com.leomanzini.space.flights.batch.repository.ArticleRepository;
 import br.com.leomanzini.space.flights.batch.repository.EventsRepository;
 import br.com.leomanzini.space.flights.batch.repository.LaunchesRepository;
-import br.com.leomanzini.space.flights.batch.utils.ModelMapperMethods;
-import br.com.leomanzini.space.flights.batch.utils.SpaceFlightsApiMethods;
-import br.com.leomanzini.space.flights.batch.utils.SystemCodes;
-import br.com.leomanzini.space.flights.batch.utils.SystemMessages;
-import org.modelmapper.ModelMapper;
+import br.com.leomanzini.space.flights.batch.beans.ModelMapperMethods;
+import br.com.leomanzini.space.flights.batch.beans.SpaceFlightsApiMethods;
+import br.com.leomanzini.space.flights.batch.enums.SystemCodes;
+import br.com.leomanzini.space.flights.batch.enums.SystemMessages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

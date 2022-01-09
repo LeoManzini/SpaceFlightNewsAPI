@@ -1,4 +1,4 @@
-package br.com.leomanzini.space.flights.batch.utils;
+package br.com.leomanzini.space.flights.batch.beans;
 
 import br.com.leomanzini.space.flights.batch.dto.ArticlesResponseDTO;
 import br.com.leomanzini.space.flights.batch.model.Article;

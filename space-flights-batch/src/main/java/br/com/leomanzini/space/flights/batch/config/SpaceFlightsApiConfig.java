@@ -1,5 +1,6 @@
-package br.com.leomanzini.space.flights.batch.utils;
+package br.com.leomanzini.space.flights.batch.config;
 
+import br.com.leomanzini.space.flights.batch.beans.SpaceFlightsApiMethods;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

@@ -1,4 +1,4 @@
-package br.com.leomanzini.space.flights.batch.utils;
+package br.com.leomanzini.space.flights.batch.enums;
 
 public enum SystemMessages {
 
@@ -11,7 +11,7 @@ public enum SystemMessages {
 
     private String message;
 
-    private SystemMessages(String message) {
+    SystemMessages(String message) {
         this.message = message;
     }
 
