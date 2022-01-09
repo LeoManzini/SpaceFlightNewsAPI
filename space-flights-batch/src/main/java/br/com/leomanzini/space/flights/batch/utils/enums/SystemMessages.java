@@ -7,7 +7,8 @@ public enum SystemMessages {
     NOT_FOUND_ERROR("Entity API not found"),
     UPDATE_ROUTINE_ERROR("Could not complete the database update routine"),
     PERSIST_ARTICLE_LIST_ERROR("Error while persisting article list"),
-    ARTICLE_FOUND_AT_DATABASE("Article already at database");
+    ARTICLE_FOUND_AT_DATABASE("Article already at database"),
+    WRITE_ERROR("Error while writing historical insertion");
 
     private String message;
 
