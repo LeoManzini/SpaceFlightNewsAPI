@@ -1,14 +1,14 @@
 package br.com.leomanzini.space.flights.batch.service;
 
 import br.com.leomanzini.space.flights.batch.dto.ArticlesResponseDTO;
-import br.com.leomanzini.space.flights.batch.exceptions.RegisterNotFoundException;
+import br.com.leomanzini.space.flights.batch.exceptions.*;
 import br.com.leomanzini.space.flights.batch.model.Article;
 import br.com.leomanzini.space.flights.batch.model.ArticleControl;
 import br.com.leomanzini.space.flights.batch.repository.ArticleControlRepository;
 import br.com.leomanzini.space.flights.batch.repository.ArticleRepository;
 import br.com.leomanzini.space.flights.batch.repository.EventsRepository;
 import br.com.leomanzini.space.flights.batch.repository.LaunchesRepository;
-import br.com.leomanzini.space.flights.batch.utils.ResponseCodes;
+import br.com.leomanzini.space.flights.batch.utils.SystemCodes;
 import br.com.leomanzini.space.flights.batch.utils.SystemMessages;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -58,29 +58,30 @@ public class ArticleService {
     //  usar tabela a parte para guardar os dados de registros inseridos e um campo na tabela Articles para saber se foi inserido por user ou API
     // TODO adicionar disparos de emails com relatorios de execucoes da rotina, caso de certo ou nao
 
-    public void executeDatabaseUpdateRoutine() {
+    public void executeDatabaseUpdateRoutine() throws UpdateRoutineException {
         try {
             Integer countApiArticles = getSpaceFlightsArticlesCount();
-            ArticleControl databaseArticleControl = articleControlRepository.findById(1L).orElseThrow(() ->
-                    new RegisterNotFoundException());
+            ArticleControl databaseArticleControl = articleControlRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
+                    new RegisterNotFoundException(SystemMessages.DATABASE_NOT_FOUND.getMessage()));
 
             if (countApiArticles > databaseArticleControl.getArticleCount()) {
-               Long databaseLastId = databaseArticleControl.getLastArticleId();
-               List<Article> articlesToPersist = new ArrayList<>();
+                Long databaseLastId = databaseArticleControl.getLastArticleId();
+                List<Article> articlesToPersist = new ArrayList<>();
 
-               while(true) {
-                   Article newArticle = dtoToEntity(getSpaceFlightsArticlesById(++databaseLastId));
-                   if (newArticle.getId() == null) {
-                       break;
-                   } else {
-                       articlesToPersist.add(newArticle);
-                   }
-               }
-               persistArticleList(articlesToPersist);
-               // criar metodo para envio de relatorio por email sendInsertionReport();
+                while (true) {
+                    Article newArticle = dtoToEntity(getSpaceFlightsArticlesById(++databaseLastId));
+                    if (newArticle == null) {
+                        break;
+                    } else {
+                        articlesToPersist.add(newArticle);
+                    }
+                }
+                persistArticleList(articlesToPersist);
+                // criar metodo para envio de relatorio por email sendInsertionReport();
             } // else { envia um relatorio de base de dados estava atualizada, sem artigos novos na api
         } catch (Exception e) {
             e.printStackTrace();
+            throw new UpdateRoutineException(SystemMessages.UPDATE_ROUTINE_ERROR.getMessage());
         }
     }
 
@@ -89,11 +90,12 @@ public class ArticleService {
         persistArticle(article);
     }
 
-    private void persistArticleList(List<Article> receivedObject) {
+    private void persistArticleList(List<Article> receivedObject) throws PersistArticleListException {
 //        try {
 //            receivedObject.forEach(item -> persistArticle(item));
 //        } catch (Exception e) {
 //            e.printStackTrace();
+//            throw new PersistArticleListException(SystemMessages.PERSIST_ARTICLE_LIST_ERROR.getMessage());
 //        }
     }
 
@@ -111,7 +113,7 @@ public class ArticleService {
             });
             articleRepository.save(articleToPersist);
         } else {
-            throw new Exception("Artigo encontrado ba base");
+            throw new ArticleException(SystemMessages.ARTICLE_FOUND_AT_DATABASE.getMessage());
         }
     }
 
@@ -123,7 +125,10 @@ public class ArticleService {
         } catch (MalformedURLException e) {
             e.printStackTrace();
             throw new Exception(e.getMessage());
-        } catch (IOException e) {
+        } catch (APINotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } catch (Exception e) {
             e.printStackTrace();
             throw new Exception(e.getMessage());
         }
@@ -138,10 +143,12 @@ public class ArticleService {
         } catch (MalformedURLException e) {
             e.printStackTrace();
             throw new Exception(e.getMessage());
-        } catch (IOException e) {
+        } catch (APINotFoundException e) {
             e.printStackTrace();
-            // Criar catch especializado
-            return new ArticlesResponseDTO();
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception(e.getMessage());
         }
     }
 
@@ -149,23 +156,27 @@ public class ArticleService {
         try {
             String responseJson = callApi(applicationContext + allArticles);
             Gson gson = new Gson();
-            Type listType = new TypeToken<List<ArticlesResponseDTO>>() {}.getType();
+            Type listType = new TypeToken<List<ArticlesResponseDTO>>() {
+            }.getType();
             return gson.fromJson(responseJson, listType);
         } catch (MalformedURLException e) {
             e.printStackTrace();
             throw new Exception(e.getMessage());
-        } catch (IOException e) {
+        } catch (APINotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } catch (Exception e) {
             e.printStackTrace();
             throw new Exception(e.getMessage());
         }
     }
 
-    private String callApi(String applicationContext) throws IOException {
+    private String callApi(String applicationContext) throws Exception {
         URL apiUrl = new URL(applicationContext);
         HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
 
-        if (apiConnection.getResponseCode() != ResponseCodes.SUCCESS.getResponseCode()) {
-            throw new IOException(SystemMessages.HTTP_ERROR.getMessage() + apiConnection.getResponseCode());
+        if (apiConnection.getResponseCode() != SystemCodes.SUCCESS.getCode()) {
+            throw new APINotFoundException(SystemMessages.HTTP_ERROR.getMessage() + apiConnection.getResponseCode());
         }
         BufferedReader apiResponse = new BufferedReader(new InputStreamReader(apiConnection.getInputStream()));
         return jsonIntoString(apiResponse);
