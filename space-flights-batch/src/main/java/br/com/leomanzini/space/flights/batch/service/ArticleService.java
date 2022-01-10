@@ -12,6 +12,9 @@ import br.com.leomanzini.space.flights.batch.utils.beans.ModelMapperMethods;
 import br.com.leomanzini.space.flights.batch.utils.beans.SpaceFlightsApi;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemCodes;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemMessages;
+import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +23,8 @@ import java.util.List;
 
 @Service
 public class ArticleService {
+
+    private static final Logger log = LoggerFactory.getLogger(ArticleService.class);
 
     @Autowired
     private ModelMapperMethods mapper;
@@ -37,22 +42,29 @@ public class ArticleService {
     @Autowired
     private ArticleControlRepository articleControlRepository;
 
-    /*
-    Criado banco de dados remoto, subir aplicação e configurar o mesmo
-    postgres://hiqjjdrvhiwboc:9621d87429585c150358346dea0fd68916ea47c4f3bd21df2a6a74f895764c9c@ec2-3-231-253-230.compute-1.amazonaws.com:5432/d6pl91qj1um1rv
-     */
     // TODO montar rotina de verificacao se a API recebeu novos artigos e persistir os mesmos no banco,
     //  usar tabela a parte para guardar os dados de registros inseridos e um campo na tabela Articles para saber se foi inserido por user ou API
     // TODO adicionar disparos de emails com relatorios de execucoes da rotina, caso de certo ou nao
 
     public void executeDatabaseUpdateRoutine() throws UpdateRoutineException {
+        Integer countApiArticles = null;
+        ArticleControl databaseArticleControl = null;
+        Long databaseLastId = null;
+
         try {
-            Integer countApiArticles = apiMethods.getSpaceFlightsArticlesCount();
-            ArticleControl databaseArticleControl = articleControlRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
+            countApiArticles = apiMethods.getSpaceFlightsArticlesCount();
+            log.info("API articles count: " + countApiArticles);
+
+            databaseArticleControl = articleControlRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
                     new RegisterNotFoundException(SystemMessages.DATABASE_NOT_FOUND.getMessage()));
 
+            log.info("Database articles count: " + databaseArticleControl.getArticleCount());
+
             if (countApiArticles > databaseArticleControl.getArticleCount()) {
-                Long databaseLastId = databaseArticleControl.getLastArticleId();
+
+                log.info("Starting database update");
+
+                databaseLastId = databaseArticleControl.getLastArticleId();
                 List<Article> articlesToPersist = new ArrayList<>();
 
                 while (true) {
@@ -63,41 +75,56 @@ public class ArticleService {
                         articlesToPersist.add(newArticle);
                     }
                 }
+
+                log.info("Starting data persistence");
+
                 persistArticleList(articlesToPersist);
-                updateArticleControl(databaseArticleControl, countApiArticles, --databaseLastId);
                 // criar metodo para envio de relatorio por email sendInsertionReport();
             } // else { envia um relatorio de base de dados estava atualizada, sem artigos novos na api
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             throw new UpdateRoutineException(SystemMessages.UPDATE_ROUTINE_ERROR.getMessage());
+        } finally {
+            updateArticleControl(databaseArticleControl, countApiArticles, --databaseLastId);
         }
     }
 
     public void executeHistoricalInsertDocumentWrite() throws HistoricalRoutineException, RegisterNotFoundException {
-        ArticleControl databaseArticleControl = articleControlRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
-                new RegisterNotFoundException(SystemMessages.DATABASE_NOT_FOUND.getMessage()));
-        long articlesIdCounter = 0l;
+        ArticleControl databaseArticleControl = null;
+        Long articlesIdCounter = null;
         try {
+            log.info("Starting database historical document write");
+
+            databaseArticleControl = articleControlRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
+                    new RegisterNotFoundException(SystemMessages.DATABASE_NOT_FOUND.getMessage()));
             articlesIdCounter = databaseArticleControl.getLastArticleId();
             List<Article> articlesToWrite = new ArrayList<>();
+
+            log.info("Retrieving data from API, start id: " + articlesIdCounter);
+
             while (true) {
-                System.out.println("Article id: " + articlesIdCounter);
                 Article articleToWrite = mapper.dtoToEntity(apiMethods.getSpaceFlightsArticlesById(++articlesIdCounter));
+
+                log.info("Current article id: " + articlesIdCounter);
+
                 if (articleToWrite.getId() == null) {
+                    log.info("Current article id " + articlesIdCounter + " = null");
                     break;
                 } else {
                     articlesToWrite.add(articleToWrite);
                 }
             }
+            log.info("Starting to write data to sql file");
+
             filesWriter.writeHistoricalArticleInsertionFile(articlesToWrite);
         } catch (APIException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_API_ERROR.getMessage());
         } catch (WriteException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_WRITE_ERROR.getMessage());
         } finally {
-            updateArticleControl(databaseArticleControl, 1, --articlesIdCounter);
+            updateArticleControl(databaseArticleControl, 1, articlesIdCounter);
         }
     }
 
@@ -113,7 +140,7 @@ public class ArticleService {
                 });
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             throw new PersistArticleListException(SystemMessages.PERSIST_ARTICLE_LIST_ERROR.getMessage());
         }
     }
