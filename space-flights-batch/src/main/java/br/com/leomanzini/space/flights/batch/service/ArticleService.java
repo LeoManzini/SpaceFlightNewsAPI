@@ -51,6 +51,7 @@ public class ArticleService {
         this.articleControlCrudRepository = articleControlCrudRepository;
     }
 
+    // TODO corrigir arquivo de insert
     // TODO adicionar disparos de emails com relatorios de execucoes da rotina, caso de certo ou nao
 
     public void executeDatabaseUpdateRoutine() throws UpdateRoutineException {
