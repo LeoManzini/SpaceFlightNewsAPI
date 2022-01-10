@@ -3,16 +3,12 @@ package br.com.leomanzini.space.flights.batch.service;
 import br.com.leomanzini.space.flights.batch.exceptions.*;
 import br.com.leomanzini.space.flights.batch.model.Article;
 import br.com.leomanzini.space.flights.batch.model.ArticleControl;
-import br.com.leomanzini.space.flights.batch.repository.ArticleControlRepository;
-import br.com.leomanzini.space.flights.batch.repository.ArticleRepository;
-import br.com.leomanzini.space.flights.batch.repository.EventsRepository;
-import br.com.leomanzini.space.flights.batch.repository.LaunchesRepository;
+import br.com.leomanzini.space.flights.batch.repository.*;
 import br.com.leomanzini.space.flights.batch.utils.beans.FilesWriter;
 import br.com.leomanzini.space.flights.batch.utils.beans.ModelMapperMethods;
 import br.com.leomanzini.space.flights.batch.utils.beans.SpaceFlightsApi;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemCodes;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemMessages;
-import org.apache.logging.log4j.LogManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,18 +37,17 @@ public class ArticleService {
     private LaunchesRepository launchesRepository;
     @Autowired
     private ArticleControlRepository articleControlRepository;
+    @Autowired
+    private ArticleControlCrudRepository articleControlCrudRepository;
 
-    // TODO montar rotina de verificacao se a API recebeu novos artigos e persistir os mesmos no banco,
-    //  usar tabela a parte para guardar os dados de registros inseridos e um campo na tabela Articles para saber se foi inserido por user ou API
     // TODO adicionar disparos de emails com relatorios de execucoes da rotina, caso de certo ou nao
 
     public void executeDatabaseUpdateRoutine() throws UpdateRoutineException {
-        Integer countApiArticles = null;
         ArticleControl databaseArticleControl = null;
         Long databaseLastId = null;
 
         try {
-            countApiArticles = apiMethods.getSpaceFlightsArticlesCount();
+            Integer countApiArticles = apiMethods.getSpaceFlightsArticlesCount();
             log.info("API articles count: " + countApiArticles);
 
             databaseArticleControl = articleControlRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
@@ -85,7 +80,7 @@ public class ArticleService {
             log.error(e.getMessage(), e);
             throw new UpdateRoutineException(SystemMessages.UPDATE_ROUTINE_ERROR.getMessage());
         } finally {
-            updateArticleControl(databaseArticleControl, countApiArticles, --databaseLastId);
+            updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), --databaseLastId);
         }
     }
 
@@ -124,11 +119,12 @@ public class ArticleService {
             log.error(e.getMessage(), e);
             throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_WRITE_ERROR.getMessage());
         } finally {
-            updateArticleControl(databaseArticleControl, 1, articlesIdCounter);
+            updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), articlesIdCounter);
         }
     }
 
     private void persistArticleList(List<Article> receivedObject) throws PersistArticleListException {
+        log.info("Starting Articles list persistence");
         try {
             if (!receivedObject.isEmpty()) {
                 receivedObject.forEach(articleToPersist -> {
@@ -147,6 +143,7 @@ public class ArticleService {
 
     private void persistArticle(Article articleToPersist) throws ArticleException {
         if (articleRepository.findById(articleToPersist.getId()).isEmpty()) {
+            log.info("Current article id: " + articleToPersist.getId());
             articleToPersist.getLaunches().forEach(launches -> {
                 if (launchesRepository.findById(launches.getId()).isEmpty()) {
                     launchesRepository.save(launches);
@@ -158,15 +155,19 @@ public class ArticleService {
                 }
             });
             articleRepository.save(articleToPersist);
+            log.info("Article persisted successfully");
         } else {
             throw new ArticleException(SystemMessages.ARTICLE_FOUND_AT_DATABASE.getMessage());
         }
     }
 
-    private void updateArticleControl(ArticleControl databaseArticleControl, Integer countApiArticles, Long lastId) {
-        databaseArticleControl.setArticleCount(countApiArticles.longValue());
+    private void updateArticleControl(ArticleControl databaseArticleControl, Long countApiArticles, Long lastId) {
+        databaseArticleControl.setArticleCount(countApiArticles);
         databaseArticleControl.setLastArticleId(lastId);
-
         articleControlRepository.saveAndFlush(databaseArticleControl);
+
+        log.info("Articles count " + countApiArticles.toString());
+
+        log.info("Article control table updated successfully");
     }
 }

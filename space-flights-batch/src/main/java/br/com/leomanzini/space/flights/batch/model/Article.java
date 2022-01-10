@@ -42,4 +42,7 @@ public class Article {
 
     @ManyToMany
     private List<Events> events;
+
+    @Column(name = "inserted_by_human")
+    private Boolean insertedByHuman = false;
 }
