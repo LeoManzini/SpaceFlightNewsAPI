@@ -3,7 +3,10 @@ package br.com.leomanzini.space.flights.batch.service;
 import br.com.leomanzini.space.flights.batch.exceptions.*;
 import br.com.leomanzini.space.flights.batch.model.Article;
 import br.com.leomanzini.space.flights.batch.model.ArticleControl;
-import br.com.leomanzini.space.flights.batch.repository.*;
+import br.com.leomanzini.space.flights.batch.repository.ArticleControlCrudRepository;
+import br.com.leomanzini.space.flights.batch.repository.ArticleRepository;
+import br.com.leomanzini.space.flights.batch.repository.EventsRepository;
+import br.com.leomanzini.space.flights.batch.repository.LaunchesRepository;
 import br.com.leomanzini.space.flights.batch.utils.beans.FilesWriter;
 import br.com.leomanzini.space.flights.batch.utils.beans.ModelMapperMethods;
 import br.com.leomanzini.space.flights.batch.utils.beans.SpaceFlightsApi;
@@ -23,34 +26,42 @@ public class ArticleService {
     private static final Logger log = LoggerFactory.getLogger(ArticleService.class);
 
     @Autowired
-    private ModelMapperMethods mapper;
+    private final ModelMapperMethods mapper;
     @Autowired
-    private SpaceFlightsApi apiMethods;
+    private final SpaceFlightsApi apiMethods;
     @Autowired
-    private FilesWriter filesWriter;
+    private final FilesWriter filesWriter;
 
     @Autowired
-    private ArticleRepository articleRepository;
+    private final ArticleRepository articleRepository;
     @Autowired
-    private EventsRepository eventsRepository;
+    private final EventsRepository eventsRepository;
     @Autowired
-    private LaunchesRepository launchesRepository;
+    private final LaunchesRepository launchesRepository;
     @Autowired
-    private ArticleControlRepository articleControlRepository;
-    @Autowired
-    private ArticleControlCrudRepository articleControlCrudRepository;
+    private final ArticleControlCrudRepository articleControlCrudRepository;
+
+    public ArticleService(ModelMapperMethods mapper, SpaceFlightsApi apiMethods, FilesWriter filesWriter, ArticleRepository articleRepository, EventsRepository eventsRepository, LaunchesRepository launchesRepository, ArticleControlCrudRepository articleControlCrudRepository) {
+        this.mapper = mapper;
+        this.apiMethods = apiMethods;
+        this.filesWriter = filesWriter;
+        this.articleRepository = articleRepository;
+        this.eventsRepository = eventsRepository;
+        this.launchesRepository = launchesRepository;
+        this.articleControlCrudRepository = articleControlCrudRepository;
+    }
 
     // TODO adicionar disparos de emails com relatorios de execucoes da rotina, caso de certo ou nao
 
     public void executeDatabaseUpdateRoutine() throws UpdateRoutineException {
         ArticleControl databaseArticleControl = null;
-        Long databaseLastId = null;
+        Long databaseLastId = 0L;
 
         try {
             Integer countApiArticles = apiMethods.getSpaceFlightsArticlesCount();
             log.info("API articles count: " + countApiArticles);
 
-            databaseArticleControl = articleControlRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
+            databaseArticleControl = articleControlCrudRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
                     new RegisterNotFoundException(SystemMessages.DATABASE_NOT_FOUND.getMessage()));
 
             log.info("Database articles count: " + databaseArticleControl.getArticleCount());
@@ -80,17 +91,18 @@ public class ArticleService {
             log.error(e.getMessage(), e);
             throw new UpdateRoutineException(SystemMessages.UPDATE_ROUTINE_ERROR.getMessage());
         } finally {
-            updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), --databaseLastId);
+            assert databaseArticleControl != null;
+            updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), databaseLastId);
         }
     }
 
     public void executeHistoricalInsertDocumentWrite() throws HistoricalRoutineException, RegisterNotFoundException {
         ArticleControl databaseArticleControl = null;
-        Long articlesIdCounter = null;
+        Long articlesIdCounter = 0L;
         try {
             log.info("Starting database historical document write");
 
-            databaseArticleControl = articleControlRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
+            databaseArticleControl = articleControlCrudRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
                     new RegisterNotFoundException(SystemMessages.DATABASE_NOT_FOUND.getMessage()));
             articlesIdCounter = databaseArticleControl.getLastArticleId();
             List<Article> articlesToWrite = new ArrayList<>();
@@ -119,6 +131,7 @@ public class ArticleService {
             log.error(e.getMessage(), e);
             throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_WRITE_ERROR.getMessage());
         } finally {
+            assert databaseArticleControl != null;
             updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), articlesIdCounter);
         }
     }
@@ -164,10 +177,9 @@ public class ArticleService {
     private void updateArticleControl(ArticleControl databaseArticleControl, Long countApiArticles, Long lastId) {
         databaseArticleControl.setArticleCount(countApiArticles);
         databaseArticleControl.setLastArticleId(lastId);
-        articleControlRepository.saveAndFlush(databaseArticleControl);
+        articleControlCrudRepository.save(databaseArticleControl);
 
         log.info("Articles count " + countApiArticles.toString());
-
         log.info("Article control table updated successfully");
     }
 }
