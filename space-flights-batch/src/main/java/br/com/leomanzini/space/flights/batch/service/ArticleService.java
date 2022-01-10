@@ -73,11 +73,15 @@ public class ArticleService {
         }
     }
 
-    public void executeHistoricalInsertDocumentWrite() throws HistoricalRoutineException {
+    public void executeHistoricalInsertDocumentWrite() throws HistoricalRoutineException, RegisterNotFoundException {
+        ArticleControl databaseArticleControl = articleControlRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
+                new RegisterNotFoundException(SystemMessages.DATABASE_NOT_FOUND.getMessage()));
+        long articlesIdCounter = 0l;
         try {
-            long articlesIdCounter = 0L;
+            articlesIdCounter = databaseArticleControl.getLastArticleId();
             List<Article> articlesToWrite = new ArrayList<>();
             while (true) {
+                System.out.println("Article id: " + articlesIdCounter);
                 Article articleToWrite = mapper.dtoToEntity(apiMethods.getSpaceFlightsArticlesById(++articlesIdCounter));
                 if (articleToWrite.getId() == null) {
                     break;
@@ -92,6 +96,8 @@ public class ArticleService {
         } catch (WriteException e) {
             e.printStackTrace();
             throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_WRITE_ERROR.getMessage());
+        } finally {
+            updateArticleControl(databaseArticleControl, 1, --articlesIdCounter);
         }
     }
 
