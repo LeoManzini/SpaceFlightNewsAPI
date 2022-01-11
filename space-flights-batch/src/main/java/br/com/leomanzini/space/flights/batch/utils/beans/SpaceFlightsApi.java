@@ -1,6 +1,6 @@
 package br.com.leomanzini.space.flights.batch.utils.beans;
 
-import br.com.leomanzini.space.flights.batch.dto.ArticlesResponseDTO;
+import br.com.leomanzini.space.flights.batch.dto.ArticlesDTO;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemCodes;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemMessages;
 import br.com.leomanzini.space.flights.batch.exceptions.APIException;
@@ -45,29 +45,29 @@ public class SpaceFlightsApi {
         }
     }
 
-    public ArticlesResponseDTO getSpaceFlightsArticlesById(Long articleId) throws APIException {
+    public ArticlesDTO getSpaceFlightsArticlesById(Long articleId) throws APIException {
         try {
             String responseJson = callApi(applicationContext +
                     articleById.replace("x", articleId.toString()));
             Gson gson = new Gson();
-            return gson.fromJson(responseJson, ArticlesResponseDTO.class);
+            return gson.fromJson(responseJson, ArticlesDTO.class);
         } catch (MalformedURLException e) {
             e.printStackTrace();
             throw new APIException(e.getMessage());
         } catch (APIException e) {
             e.printStackTrace();
-            return new ArticlesResponseDTO();
+            return new ArticlesDTO();
         } catch (Exception e) {
             e.printStackTrace();
             throw new APIException(e.getMessage());
         }
     }
 
-    public List<ArticlesResponseDTO> getSpaceFlightsArticles() throws APIException {
+    public List<ArticlesDTO> getSpaceFlightsArticles() throws APIException {
         try {
             String responseJson = callApi(applicationContext + allArticles);
             Gson gson = new Gson();
-            Type listType = new TypeToken<List<ArticlesResponseDTO>>() {
+            Type listType = new TypeToken<List<ArticlesDTO>>() {
             }.getType();
             return gson.fromJson(responseJson, listType);
         } catch (MalformedURLException e) {
