@@ -31,6 +31,8 @@ public class ArticleService {
     private final SpaceFlightsApi apiMethods;
     @Autowired
     private final FilesWriter filesWriter;
+    @Autowired
+    private final EmailService emailService;
 
     @Autowired
     private final ArticleRepository articleRepository;
@@ -41,23 +43,20 @@ public class ArticleService {
     @Autowired
     private final ArticleControlCrudRepository articleControlCrudRepository;
 
-    public ArticleService(ModelMapperMethods mapper, SpaceFlightsApi apiMethods, FilesWriter filesWriter, ArticleRepository articleRepository, EventsRepository eventsRepository, LaunchesRepository launchesRepository, ArticleControlCrudRepository articleControlCrudRepository) {
+    public ArticleService(ModelMapperMethods mapper, SpaceFlightsApi apiMethods, FilesWriter filesWriter, EmailService emailService, ArticleRepository articleRepository, EventsRepository eventsRepository, LaunchesRepository launchesRepository, ArticleControlCrudRepository articleControlCrudRepository) {
         this.mapper = mapper;
         this.apiMethods = apiMethods;
         this.filesWriter = filesWriter;
+        this.emailService = emailService;
         this.articleRepository = articleRepository;
         this.eventsRepository = eventsRepository;
         this.launchesRepository = launchesRepository;
         this.articleControlCrudRepository = articleControlCrudRepository;
     }
 
-    // TODO corrigir arquivo de insert
-    // TODO adicionar disparos de emails com relatorios de execucoes da rotina, caso de certo ou nao
-
     public void executeDatabaseUpdateRoutine() throws UpdateRoutineException {
         ArticleControl databaseArticleControl = null;
         Long databaseLastId = 0L;
-
         try {
             Integer countApiArticles = apiMethods.getSpaceFlightsArticlesCount();
             log.info("API articles count: " + countApiArticles);
@@ -82,12 +81,13 @@ public class ArticleService {
                         articlesToPersist.add(newArticle);
                     }
                 }
-
                 log.info("Starting data persistence");
-
                 persistArticleList(articlesToPersist);
-                // criar metodo para envio de relatorio por email sendInsertionReport();
-            } // else { envia um relatorio de base de dados estava atualizada, sem artigos novos na api
+                log.info("Sending report email to database update");
+                emailService.sendEmail(SystemMessages.DATABASE_UPDATED_REPORT.getMessage());
+            } else {
+                emailService.sendEmail(SystemMessages.DATABASE_ALREADY_UPDATED_REPORT.getMessage());
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new UpdateRoutineException(SystemMessages.UPDATE_ROUTINE_ERROR.getMessage());
@@ -123,14 +123,18 @@ public class ArticleService {
                 }
             }
             log.info("Starting to write data to sql file");
-
             filesWriter.writeHistoricalArticleInsertionFile(articlesToWrite);
+            log.info("Sending report email");
+            emailService.sendEmail(SystemMessages.EMAIL_HISTORICAL_REPORT.getMessage());
         } catch (APIException e) {
             log.error(e.getMessage(), e);
             throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_API_ERROR.getMessage());
         } catch (WriteException e) {
             log.error(e.getMessage(), e);
             throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_WRITE_ERROR.getMessage());
+        } catch (EmailServiceException e) {
+            log.error(e.getMessage(), e);
+            throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_EMAIL_ERROR.getMessage());
         } finally {
             assert databaseArticleControl != null;
             updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), articlesIdCounter);
