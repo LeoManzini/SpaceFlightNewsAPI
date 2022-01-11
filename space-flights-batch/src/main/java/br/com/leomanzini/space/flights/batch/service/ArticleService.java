@@ -57,6 +57,7 @@ public class ArticleService {
     public void executeDatabaseUpdateRoutine() throws UpdateRoutineException {
         ArticleControl databaseArticleControl = null;
         Long databaseLastId = 0L;
+        String mailMessage = "";
         try {
             Integer countApiArticles = apiMethods.getSpaceFlightsArticlesCount();
             log.info("API articles count: " + countApiArticles);
@@ -67,9 +68,7 @@ public class ArticleService {
             log.info("Database articles count: " + databaseArticleControl.getArticleCount());
 
             if (countApiArticles > databaseArticleControl.getArticleCount()) {
-
                 log.info("Starting database update");
-
                 databaseLastId = databaseArticleControl.getLastArticleId();
                 List<Article> articlesToPersist = new ArrayList<>();
 
@@ -84,14 +83,25 @@ public class ArticleService {
                 log.info("Starting data persistence");
                 persistArticleList(articlesToPersist);
                 log.info("Sending report email to database update");
-                emailService.sendEmail(SystemMessages.DATABASE_UPDATED_REPORT.getMessage());
+                mailMessage = SystemMessages.DATABASE_UPDATED_REPORT.getMessage();
             } else {
-                emailService.sendEmail(SystemMessages.DATABASE_ALREADY_UPDATED_REPORT.getMessage());
+                mailMessage = SystemMessages.DATABASE_ALREADY_UPDATED_REPORT.getMessage();
             }
+        } catch (APIException e) {
+            mailMessage = SystemMessages.MAIL_API_ERROR.getMessage();
+            log.error(e.getMessage(), e);
+            throw new UpdateRoutineException(SystemMessages.API_GET_ARTICLE_ID.getMessage());
+        } catch (PersistArticleListException e) {
+            mailMessage = SystemMessages.MAIL_PERSISTENCE_ERROR.getMessage();
+            log.error(e.getMessage(), e);
+            throw new UpdateRoutineException(SystemMessages.INSERT_LISTS_ERROR.getMessage());
         } catch (Exception e) {
+            mailMessage = SystemMessages.MAIL_UPDATE_GENERIC_ERROR.getMessage();
             log.error(e.getMessage(), e);
             throw new UpdateRoutineException(SystemMessages.UPDATE_ROUTINE_ERROR.getMessage());
         } finally {
+            log.info("Sending report email");
+            emailService.sendEmail(mailMessage);
             assert databaseArticleControl != null;
             updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), databaseLastId);
         }
@@ -100,6 +110,7 @@ public class ArticleService {
     public void executeHistoricalInsertDocumentWrite() throws HistoricalRoutineException, RegisterNotFoundException {
         ArticleControl databaseArticleControl = null;
         Long articlesIdCounter = 0L;
+        String mailMessage = "";
         try {
             log.info("Starting database historical document write");
 
@@ -124,18 +135,22 @@ public class ArticleService {
             }
             log.info("Starting to write data to sql file");
             filesWriter.writeHistoricalArticleInsertionFile(articlesToWrite);
-            log.info("Sending report email");
-            emailService.sendEmail(SystemMessages.EMAIL_HISTORICAL_REPORT.getMessage());
+            mailMessage = SystemMessages.EMAIL_HISTORICAL_REPORT.getMessage();
         } catch (APIException e) {
+            mailMessage = SystemMessages.MAIL_API_ERROR.getMessage();
             log.error(e.getMessage(), e);
             throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_API_ERROR.getMessage());
         } catch (WriteException e) {
+            mailMessage = SystemMessages.MAIL_WRITE_ERROR.getMessage();
             log.error(e.getMessage(), e);
             throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_WRITE_ERROR.getMessage());
-        } catch (EmailServiceException e) {
+        } catch (Exception e) {
+            mailMessage = SystemMessages.MAIL_HISTORICAL_GENERIC_ERROR.getMessage();
             log.error(e.getMessage(), e);
-            throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_EMAIL_ERROR.getMessage());
+            throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_WRITE_ERROR.getMessage());
         } finally {
+            log.info("Sending report email");
+            emailService.sendEmail(mailMessage);
             assert databaseArticleControl != null;
             updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), articlesIdCounter);
         }
