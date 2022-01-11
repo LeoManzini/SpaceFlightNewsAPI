@@ -72,10 +72,10 @@ public class FilesWriter {
 
     private String articleToInsertSyntax (Article article) {
         return "INSERT INTO article "
-                + "(id, featured, image_url, news_site, published_at, summary, title, url) "
+                + "(id, featured, image_url, news_site, published_at, summary, title, url, inserted_by_human) "
                 + "VALUES (" + article.getId() + ", " + article.getFeatured() + ", '" + article.getImageUrl()
                 + "', '" + article.getNewsSite() + "', '" + article.getPublishedAt() + "', '" + article.getSummary()
-                + "', '" + article.getTitle() + "', '" + article.getUrl() + "');";
+                + "', '" + article.getTitle() + "', '" + article.getUrl() + "', " + article.getInsertedByHuman() + ");";
     }
 
     private List<String> launchesToInsertSyntax(List<Launches> launches) {
