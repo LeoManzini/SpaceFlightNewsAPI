@@ -103,7 +103,7 @@ public class ArticleService {
             log.info("Sending report email");
             emailService.sendEmail(mailMessage);
             assert databaseArticleControl != null;
-            updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), databaseLastId);
+            updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), --databaseLastId);
         }
     }
 
@@ -150,7 +150,7 @@ public class ArticleService {
             throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_WRITE_ERROR.getMessage());
         } finally {
             log.info("Sending report email");
-            emailService.sendEmail(mailMessage);
+           // emailService.sendEmail(mailMessage);
             assert databaseArticleControl != null;
             updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), articlesIdCounter);
         }
