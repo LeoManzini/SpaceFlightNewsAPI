@@ -66,10 +66,10 @@ public class ArticleService {
                     new RegisterNotFoundException(SystemMessages.DATABASE_NOT_FOUND.getMessage()));
 
             log.info("Database articles count: " + databaseArticleControl.getArticleCount());
+            databaseLastId = databaseArticleControl.getLastArticleId();
 
             if (countApiArticles > databaseArticleControl.getArticleCount()) {
                 log.info("Starting database update");
-                databaseLastId = databaseArticleControl.getLastArticleId();
                 List<Article> articlesToPersist = new ArrayList<>();
 
                 while (true) {
@@ -103,11 +103,11 @@ public class ArticleService {
             log.info("Sending report email");
             emailService.sendEmail(mailMessage);
             assert databaseArticleControl != null;
-            updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), --databaseLastId);
+            updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), databaseLastId);
         }
     }
 
-    public void executeHistoricalInsertDocumentWrite() throws HistoricalRoutineException, RegisterNotFoundException {
+    public void executeHistoricalInsertDocumentWrite() throws HistoricalRoutineException {
         ArticleControl databaseArticleControl = null;
         Long articlesIdCounter = 0L;
         String mailMessage = "";
@@ -150,7 +150,7 @@ public class ArticleService {
             throw new HistoricalRoutineException(SystemMessages.HISTORICAL_ROUTINE_WRITE_ERROR.getMessage());
         } finally {
             log.info("Sending report email");
-           // emailService.sendEmail(mailMessage);
+            emailService.sendEmail(mailMessage);
             assert databaseArticleControl != null;
             updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), articlesIdCounter);
         }
