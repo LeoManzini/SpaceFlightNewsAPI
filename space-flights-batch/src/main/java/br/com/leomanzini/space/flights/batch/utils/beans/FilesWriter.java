@@ -74,15 +74,16 @@ public class FilesWriter {
         return "INSERT INTO article "
                 + "(id, featured, image_url, news_site, published_at, summary, title, url, inserted_by_human) "
                 + "VALUES (" + article.getId() + ", " + article.getFeatured() + ", '" + article.getImageUrl()
-                + "', '" + article.getNewsSite() + "', '" + article.getPublishedAt() + "', '" + article.getSummary()
-                + "', '" + article.getTitle() + "', '" + article.getUrl() + "', " + article.getInsertedByHuman() + ");";
+                + "', '" + article.getNewsSite() + "', '" + article.getPublishedAt() + "', '" + article.getSummary().replace("'", "`")
+                + "', '" + article.getTitle().replace("'", "`") + "', '" + article.getUrl() + "', " + article.getInsertedByHuman()
+                + ") ON CONFLICT DO NOTHING;";
     }
 
     private List<String> launchesToInsertSyntax(List<Launches> launches) {
         List<String> launchesToWrite = new ArrayList<>();
         launches.forEach(launch -> launchesToWrite.add("INSERT INTO launches "
                 + "(id, provider) "
-                + "VALUES ('" + launch.getId() + "', '" + launch.getProvider() + "');"));
+                + "VALUES ('" + launch.getId() + "', '" + launch.getProvider() + "') ON CONFLICT DO NOTHING;"));
         return launchesToWrite;
     }
 
@@ -90,7 +91,7 @@ public class FilesWriter {
         List<String> launchesArticlesToWrite = new ArrayList<>();
         launchesId.forEach(launchId -> launchesArticlesToWrite.add("INSERT INTO article_launches "
                 + "(article_id, launches_id) "
-                + "VALUES (" + articleId + ", '" + launchId + "');"));
+                + "VALUES (" + articleId + ", '" + launchId + "') ON CONFLICT DO NOTHING;"));
         return launchesArticlesToWrite;
     }
 
@@ -98,7 +99,7 @@ public class FilesWriter {
         List<String> eventsToWrite = new ArrayList<>();
         events.forEach(event -> eventsToWrite.add("INSERT INTO events "
                 + "(id, provider) "
-                + "VALUES (" + event.getId() + ", '" + event.getProvider() + "');"));
+                + "VALUES (" + event.getId() + ", '" + event.getProvider() + "') ON CONFLICT DO NOTHING;"));
         return eventsToWrite;
     }
 
@@ -106,7 +107,7 @@ public class FilesWriter {
         List<String> eventsArticleToWrite = new ArrayList<>();
         eventsId.forEach(eventId -> eventsArticleToWrite.add("INSERT INTO article_events "
                 + "(article_id, events_id) "
-                + "VALUES (" + articleId + ", " + eventId + ");"));
+                + "VALUES (" + articleId + ", " + eventId + ") ON CONFLICT DO NOTHING;"));
         return eventsArticleToWrite;
     }
 
