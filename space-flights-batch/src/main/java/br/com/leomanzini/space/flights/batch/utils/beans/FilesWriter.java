@@ -73,7 +73,7 @@ public class FilesWriter {
     private String articleToInsertSyntax (Article article) {
         return "INSERT INTO article "
                 + "(id, featured, image_url, news_site, published_at, summary, title, url, inserted_by_human) "
-                + "VALUES (" + article.getId() + ", " + article.getFeatured() + ", '" + article.getImageUrl()
+                + "VALUES (" + article.getId() + ", " + article.getFeatured() + ", '" + article.getImageUrl().replace("'", "`")
                 + "', '" + article.getNewsSite() + "', '" + article.getPublishedAt() + "', '" + article.getSummary().replace("'", "`")
                 + "', '" + article.getTitle().replace("'", "`") + "', '" + article.getUrl() + "', " + article.getInsertedByHuman()
                 + ") ON CONFLICT DO NOTHING;";
