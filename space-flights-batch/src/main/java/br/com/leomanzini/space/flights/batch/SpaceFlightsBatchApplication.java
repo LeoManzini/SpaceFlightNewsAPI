@@ -22,14 +22,6 @@ public class SpaceFlightsBatchApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		try {
-			int count = 0;
-			while (count < 2000) {
-				count++;
-				articleService.executeHistoricalInsertDocumentWrite();
-			}
-		} catch (Exception e) {
-			SpringApplication.run(SpaceFlightsBatchApplication.class, args);
-		}
+		articleService.executeHistoricalInsertDocumentWrite();
 	}
 }
