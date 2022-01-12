@@ -14,7 +14,7 @@ import java.util.List;
 public class SpaceFlightsApiController {
 
     @Autowired
-    private static ArticleService articleService;
+    private final ArticleService articleService;
 
     public SpaceFlightsApiController(ArticleService articleService) {
         this.articleService = articleService;
