@@ -4,13 +4,14 @@ import lombok.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ArticlesDTO {
+public class ArticlesDTO implements Serializable {
 
     @NotEmpty
     @EqualsAndHashCode.Include
