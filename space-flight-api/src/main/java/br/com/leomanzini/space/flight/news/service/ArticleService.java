@@ -37,7 +37,7 @@ public class ArticleService {
         return modelMapper.entityToDto(articleRepository.findById(id).orElseThrow(() -> new ArticleNotFoundException(id)));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ResponseEntityDTO createArticle(ArticlesDTO articleDTO) throws ArticleAlreadyAtDatabaseException {
         if (verifyIfArticleExists(articleDTO.getId())) {
             throw new ArticleAlreadyAtDatabaseException(articleDTO.getId());
