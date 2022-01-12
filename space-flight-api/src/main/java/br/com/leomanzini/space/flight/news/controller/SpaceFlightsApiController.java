@@ -1,6 +1,7 @@
 package br.com.leomanzini.space.flight.news.controller;
 
 import br.com.leomanzini.space.flight.news.dto.ArticlesDTO;
+import br.com.leomanzini.space.flight.news.exceptions.ArticleNotFoundException;
 import br.com.leomanzini.space.flight.news.service.ArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -31,9 +32,8 @@ public class SpaceFlightsApiController {
         return ResponseEntity.ok(articlesDTOList);
     }
 
-    // TODO adicionar tratativa ao retorno de erros
     @GetMapping(path = "/{id}")
-    public ResponseEntity<ArticlesDTO> findById(@PathVariable("id") Long id) {
+    public ResponseEntity<ArticlesDTO> findById(@PathVariable("id") Long id) throws ArticleNotFoundException {
         ArticlesDTO articlesDTO = articleService.findById(id);
         return ResponseEntity.ok(articlesDTO);
     }
