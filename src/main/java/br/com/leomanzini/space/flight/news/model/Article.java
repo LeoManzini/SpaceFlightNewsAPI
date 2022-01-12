@@ -10,7 +10,6 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "article")
 public class Article {
 
     @Id
@@ -45,5 +44,5 @@ public class Article {
     private List<Events> events;
 
     @Column(name = "inserted_by_human")
-    private Boolean insertedByHuman = false;
+    private Boolean insertedByHuman = true;
 }

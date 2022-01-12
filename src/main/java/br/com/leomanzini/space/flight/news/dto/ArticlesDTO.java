@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -61,15 +62,7 @@ public class ArticlesDTO implements Serializable {
         publishedAt = article.getPublishedAt();
         updatedAt = article.getPublishedAt();
         featured = article.getFeatured();
-        launches = new ArrayList<>();
-        article.getLaunches().forEach(launch -> {
-            LaunchesDTO launchesDTO = new LaunchesDTO(launch.getId(), launch.getProvider());
-            launches.add(launchesDTO);
-        });
-        events = new ArrayList<>();
-        article.getEvents().forEach(event -> {
-            EventsDTO eventsDTO = new EventsDTO(event.getId(), event.getProvider());
-            events.add(eventsDTO);
-        });
+        launches = article.getLaunches().stream().map(launch -> new LaunchesDTO(launch)).collect(Collectors.toList());
+        events = article.getEvents().stream().map(event -> new EventsDTO(event)).collect(Collectors.toList());
     }
 }

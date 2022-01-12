@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -16,8 +19,9 @@ public class ArticleService {
     @Autowired
     private final ArticleRepository articleRepository;
 
+    @Transactional(readOnly = true)
     public Page<ArticlesDTO> findAll(Pageable pageable) {
-        Page<Article> articleList = articleRepository.findAll(pageable);
-        return articleList.map(article -> new ArticlesDTO(article));
+        Page<Article> articlePage = articleRepository.findAll(pageable);
+        return articlePage.map(article -> new ArticlesDTO(article));
     }
 }
