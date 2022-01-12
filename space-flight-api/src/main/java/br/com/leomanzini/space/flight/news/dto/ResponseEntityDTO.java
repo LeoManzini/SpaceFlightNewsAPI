@@ -14,5 +14,5 @@ import java.time.LocalDateTime;
 public class ResponseEntityDTO {
 
     private String message;
-    private LocalDateTime insertionDate = LocalDateTime.now();
+    private LocalDateTime insertionDate;
 }

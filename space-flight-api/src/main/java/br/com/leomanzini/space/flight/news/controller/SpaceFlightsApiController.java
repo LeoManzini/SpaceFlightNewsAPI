@@ -2,6 +2,7 @@ package br.com.leomanzini.space.flight.news.controller;
 
 import br.com.leomanzini.space.flight.news.dto.ArticlesDTO;
 import br.com.leomanzini.space.flight.news.dto.ResponseEntityDTO;
+import br.com.leomanzini.space.flight.news.exceptions.ArticleAlreadyAtDatabaseException;
 import br.com.leomanzini.space.flight.news.exceptions.ArticleNotFoundException;
 import br.com.leomanzini.space.flight.news.service.ArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.io.FileNotFoundException;
-import java.util.List;
 
 @RestController
 @RequestMapping("/articles")
@@ -40,7 +39,7 @@ public class SpaceFlightsApiController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<ResponseEntityDTO> save(@RequestBody @Valid ArticlesDTO articleDTO) {
+    public ResponseEntity<ResponseEntityDTO> save(@RequestBody @Valid ArticlesDTO articleDTO) throws ArticleAlreadyAtDatabaseException {
         return ResponseEntity.ok(articleService.createArticle(articleDTO));
     }
 }
