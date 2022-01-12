@@ -1,6 +1,7 @@
 package br.com.leomanzini.space.flight.news.service;
 
 import br.com.leomanzini.space.flight.news.dto.ArticlesDTO;
+import br.com.leomanzini.space.flight.news.dto.ResponseEntityDTO;
 import br.com.leomanzini.space.flight.news.exceptions.ArticleNotFoundException;
 import br.com.leomanzini.space.flight.news.model.Article;
 import br.com.leomanzini.space.flight.news.repository.ArticleRepository;
@@ -24,11 +25,20 @@ public class ArticleService {
     @Transactional(readOnly = true)
     public Page<ArticlesDTO> findAll(Pageable pageable) {
         Page<Article> articlePage = articleRepository.findAll(pageable);
-        return articlePage.map(article -> modelMapper.entityToDto(article));
+        return articlePage.map(modelMapper::entityToDto);
     }
 
     @Transactional(readOnly = true)
     public ArticlesDTO findById(Long id) throws ArticleNotFoundException {
         return modelMapper.entityToDto(articleRepository.findById(id).orElseThrow(() ->new ArticleNotFoundException(id)));
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntityDTO createArticle(ArticlesDTO articleDTO) {
+        return null;
+    }
+
+    private ResponseEntityDTO createResponseMessage(String message) {
+        return ResponseEntityDTO.builder().message(message).build();
     }
 }

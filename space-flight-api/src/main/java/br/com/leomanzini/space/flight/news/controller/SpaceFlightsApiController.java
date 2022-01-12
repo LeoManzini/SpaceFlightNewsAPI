@@ -1,17 +1,17 @@
 package br.com.leomanzini.space.flight.news.controller;
 
 import br.com.leomanzini.space.flight.news.dto.ArticlesDTO;
+import br.com.leomanzini.space.flight.news.dto.ResponseEntityDTO;
 import br.com.leomanzini.space.flight.news.exceptions.ArticleNotFoundException;
 import br.com.leomanzini.space.flight.news.service.ArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.io.FileNotFoundException;
 import java.util.List;
 
@@ -27,16 +27,20 @@ public class SpaceFlightsApiController {
     }
 
     @GetMapping
+    @ResponseStatus(HttpStatus.FOUND)
     public ResponseEntity<Page<ArticlesDTO>> findAll(Pageable pageable) {
-        Page<ArticlesDTO> articlesDTOList = articleService.findAll(pageable);
-        return ResponseEntity.ok(articlesDTOList);
+        return ResponseEntity.ok(articleService.findAll(pageable));
     }
 
     @GetMapping(path = "/{id}")
+    @ResponseStatus(HttpStatus.FOUND)
     public ResponseEntity<ArticlesDTO> findById(@PathVariable("id") Long id) throws ArticleNotFoundException {
-        ArticlesDTO articlesDTO = articleService.findById(id);
-        return ResponseEntity.ok(articlesDTO);
+        return ResponseEntity.ok(articleService.findById(id));
     }
 
-    // TODO pensar nos outros métodos
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<ResponseEntityDTO> save(@RequestBody @Valid ArticlesDTO articleDTO) {
+        return ResponseEntity.ok(articleService.createArticle(articleDTO));
+    }
 }

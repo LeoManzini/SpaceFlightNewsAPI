@@ -1,6 +1,5 @@
 package br.com.leomanzini.space.flight.news.dto;
 
-import br.com.leomanzini.space.flight.news.model.Events;
 import lombok.*;
 
 import javax.validation.constraints.NotEmpty;
