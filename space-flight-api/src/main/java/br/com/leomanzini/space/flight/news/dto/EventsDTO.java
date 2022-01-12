@@ -1,5 +1,6 @@
 package br.com.leomanzini.space.flight.news.dto;
 
+import br.com.leomanzini.space.flight.news.model.Events;
 import lombok.*;
 
 import javax.validation.constraints.NotEmpty;
@@ -17,4 +18,9 @@ public class EventsDTO implements Serializable {
 
     @NotEmpty
     private String provider;
+
+    public EventsDTO(Events event) {
+        id = event.getId();
+        provider = event.getProvider();
+    }
 }
