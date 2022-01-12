@@ -25,7 +25,7 @@ public class ArticleService {
     @Transactional(readOnly = true)
     public Page<ArticlesDTO> findAll(Pageable pageable) {
         Page<Article> articlePage = articleRepository.findAll(pageable);
-        return articlePage.map(article -> new ArticlesDTO(article));
+        return articlePage.map(article -> modelMapper.entityToDto(article));
     }
 
     @Transactional(readOnly = true)

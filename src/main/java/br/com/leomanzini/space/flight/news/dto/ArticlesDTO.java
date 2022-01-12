@@ -51,18 +51,4 @@ public class ArticlesDTO implements Serializable {
 
     @Valid
     private List<EventsDTO> events;
-
-    public ArticlesDTO (Article article) {
-        id = article.getId();
-        title = article.getTitle();
-        url = article.getUrl();
-        imageUrl = article.getImageUrl();
-        newsSite = article.getNewsSite();
-        summary = article.getSummary();
-        publishedAt = article.getPublishedAt();
-        updatedAt = article.getPublishedAt();
-        featured = article.getFeatured();
-        launches = article.getLaunches().stream().map(launch -> new LaunchesDTO(launch)).collect(Collectors.toList());
-        events = article.getEvents().stream().map(event -> new EventsDTO(event)).collect(Collectors.toList());
-    }
 }

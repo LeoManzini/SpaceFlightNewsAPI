@@ -18,9 +18,4 @@ public class LaunchesDTO implements Serializable {
 
     @NotEmpty
     private String provider;
-
-    public LaunchesDTO(Launches launch) {
-        id = launch.getId();
-        provider = launch.getProvider();
-    }
 }

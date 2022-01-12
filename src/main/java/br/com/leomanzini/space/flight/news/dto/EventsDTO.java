@@ -18,9 +18,4 @@ public class EventsDTO implements Serializable {
 
     @NotEmpty
     private String provider;
-
-    public EventsDTO(Events event) {
-        id = event.getId();
-        provider = event.getProvider();
-    }
 }
