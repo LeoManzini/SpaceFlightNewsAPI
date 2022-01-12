@@ -5,6 +5,8 @@ import br.com.leomanzini.space.flight.news.dto.ResponseEntityDTO;
 import br.com.leomanzini.space.flight.news.exceptions.ArticleAlreadyAtDatabaseException;
 import br.com.leomanzini.space.flight.news.exceptions.ArticleNotFoundException;
 import br.com.leomanzini.space.flight.news.model.Article;
+import br.com.leomanzini.space.flight.news.model.ArticleDeleteControl;
+import br.com.leomanzini.space.flight.news.repository.ArticleDeleteControlRepository;
 import br.com.leomanzini.space.flight.news.repository.ArticleRepository;
 import br.com.leomanzini.space.flight.news.utils.beans.ModelMapperMethods;
 import br.com.leomanzini.space.flight.news.utils.enums.SystemMessages;
@@ -23,6 +25,8 @@ public class ArticleService {
 
     @Autowired
     private final ArticleRepository articleRepository;
+    @Autowired
+    private final ArticleDeleteControlRepository articleControlRepository;
     @Autowired
     private final ModelMapperMethods modelMapper;
 
@@ -57,6 +61,16 @@ public class ArticleService {
         }
     }
 
+    @Transactional
+    public ResponseEntityDTO deleteArticle(Long articleId) throws ArticleNotFoundException {
+        Article articleToDelete = articleRepository.findById(articleId).orElseThrow(() -> new ArticleNotFoundException(articleId));
+        if (!articleToDelete.getInsertedByHuman()) {
+            articleControlRepository.save(createArticleDeleteControl(articleToDelete.getId()));
+        }
+        articleRepository.delete(articleToDelete);
+        return createResponseMessage(SystemMessages.ARTICLE_DELETED_SUCCESS.getMessage());
+    }
+
     private boolean verifyIfArticleExists(Long id) {
         if(articleRepository.existsById(id)) {
             return Boolean.TRUE;
@@ -67,5 +81,9 @@ public class ArticleService {
 
     private ResponseEntityDTO createResponseMessage(String message) {
         return ResponseEntityDTO.builder().message(message).insertionDate(LocalDateTime.now()).build();
+    }
+
+    private ArticleDeleteControl createArticleDeleteControl(Long articleId) {
+        return ArticleDeleteControl.builder().articleExcluded(articleId).exclusionDay(LocalDateTime.now()).build();
     }
 }
