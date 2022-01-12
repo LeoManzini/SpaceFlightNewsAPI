@@ -47,6 +47,16 @@ public class ArticleService {
         }
     }
 
+    @Transactional
+    public ResponseEntityDTO updateArticle(ArticlesDTO articleDTO) throws ArticleNotFoundException {
+        if (verifyIfArticleExists(articleDTO.getId())) {
+            articleRepository.save(modelMapper.dtoToEntity(articleDTO));
+            return createResponseMessage(SystemMessages.ARTICLE_UPDATED_SUCCESS.getMessage() + articleDTO.getId());
+        } else {
+            throw new ArticleNotFoundException(articleDTO.getId());
+        }
+    }
+
     private boolean verifyIfArticleExists(Long id) {
         if(articleRepository.existsById(id)) {
             return Boolean.TRUE;
