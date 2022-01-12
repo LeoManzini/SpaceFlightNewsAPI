@@ -38,10 +38,10 @@ public class Article {
     @Column(name = "published_at", nullable = false)
     private String publishedAt;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     private List<Launches> launches;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     private List<Events> events;
 
     @Column(name = "inserted_by_human")
