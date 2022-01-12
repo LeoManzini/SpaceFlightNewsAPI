@@ -39,7 +39,13 @@ public class SpaceFlightsApiController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<ResponseEntityDTO> save(@RequestBody @Valid ArticlesDTO articleDTO) throws ArticleAlreadyAtDatabaseException {
+    public ResponseEntity<ResponseEntityDTO> saveArticle(@RequestBody @Valid ArticlesDTO articleDTO) throws ArticleAlreadyAtDatabaseException {
         return ResponseEntity.ok(articleService.createArticle(articleDTO));
+    }
+
+    @PutMapping(path = "/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<ResponseEntityDTO> updateArticle(@RequestBody @Valid ArticlesDTO articleDTO) throws ArticleNotFoundException {
+        return ResponseEntity.ok(articleService.updateArticle(articleDTO));
     }
 }
