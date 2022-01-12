@@ -48,4 +48,10 @@ public class SpaceFlightsApiController {
     public ResponseEntity<ResponseEntityDTO> updateArticle(@RequestBody @Valid ArticlesDTO articleDTO) throws ArticleNotFoundException {
         return ResponseEntity.ok(articleService.updateArticle(articleDTO));
     }
+
+    @DeleteMapping(path = "/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<ResponseEntityDTO> deleteArticle(@PathVariable("id") Long id) throws ArticleNotFoundException {
+        return ResponseEntity.ok(articleService.deleteArticle(id));
+    }
 }
