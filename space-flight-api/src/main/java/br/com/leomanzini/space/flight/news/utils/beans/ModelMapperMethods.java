@@ -23,12 +23,6 @@ public class ModelMapperMethods {
                 .setFieldAccessLevel(Configuration.AccessLevel.PRIVATE);
     }
 
-    public List<ArticlesDTO> entityListToDtoList (List<Article> articleList) {
-        return articleList.stream()
-                .map(entity -> modelMapper.map(entity, ArticlesDTO.class))
-                .collect(Collectors.toList());
-    }
-
     public Article dtoToEntity(ArticlesDTO articleDto) {
         return modelMapper.map(articleDto, Article.class);
     }
