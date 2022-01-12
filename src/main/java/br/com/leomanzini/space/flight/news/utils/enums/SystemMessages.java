@@ -2,8 +2,8 @@ package br.com.leomanzini.space.flight.news.utils.enums;
 
 public enum SystemMessages {
 
-    ARTICLE_NOT_FOUND("Article not found at database with ID "),
-    ARTICLE_ALREADY_IN_DATABASE("Article already found at database with ID "),
+    ARTICLE_NOT_FOUND("Article not found at database, to insert use POST method with ID "),
+    ARTICLE_ALREADY_IN_DATABASE("Article already found at database, to update use PUT method with ID "),
     ARTICLE_INSERTED_SUCCESS("New article inserted successfully with ID ");
 
     private String message;

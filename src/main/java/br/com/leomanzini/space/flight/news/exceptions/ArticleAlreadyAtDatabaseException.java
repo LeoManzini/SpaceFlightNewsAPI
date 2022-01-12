@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
+@ResponseStatus(HttpStatus.ALREADY_REPORTED)
 public class ArticleAlreadyAtDatabaseException extends Exception {
 
     private static final long serialVersionUID = -6374494466178545568L;
