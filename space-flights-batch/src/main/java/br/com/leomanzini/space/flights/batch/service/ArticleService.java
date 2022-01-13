@@ -71,9 +71,11 @@ public class ArticleService {
             if (countApiArticles > databaseArticleControl.getArticleCount()) {
                 log.info("Starting database update");
                 List<Article> articlesToPersist = new ArrayList<>();
+                int errorCount = 0;
 
                 while (true) {
                     Article newArticle = mapper.dtoToEntity(apiMethods.getSpaceFlightsArticlesById(++databaseLastId));
+                    log.info("Current id " + databaseLastId);
                     if (newArticle.getId() == null) {
                         break;
                     } else {
@@ -195,7 +197,7 @@ public class ArticleService {
     }
 
     private void updateArticleControl(ArticleControl databaseArticleControl, Long countApiArticles, Long lastId) {
-        databaseArticleControl.setArticleCount(countApiArticles);
+        databaseArticleControl.setArticleCount(--countApiArticles);
         databaseArticleControl.setLastArticleId(lastId);
         articleControlCrudRepository.save(databaseArticleControl);
 
