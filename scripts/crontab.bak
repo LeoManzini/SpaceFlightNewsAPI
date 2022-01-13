@@ -1,2 +1,1 @@
-# For don't receive errors, let the cron with the final whitespace
 0 9 * * * sh /home/LeoManzini/applications/space-flights-batch/execute-batch.sh >> /var/log/cron.log 2>&1
