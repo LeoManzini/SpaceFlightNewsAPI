@@ -2,6 +2,7 @@ package br.com.leomanzini.space.flight.news.utils.enums;
 
 public enum SystemMessages {
 
+    API_STATUS_MESSAGE("Back-end Challenge 2021 \uD83C\uDFC5 - Space Flight News"),
     ARTICLE_NOT_FOUND("Article not found at database, to insert use POST method with ID "),
     ARTICLE_ALREADY_IN_DATABASE("Article already found at database, to update use PUT method with ID "),
     ARTICLE_INSERTED_SUCCESS("New article inserted successfully with ID "),
