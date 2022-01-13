@@ -1,6 +1,1 @@
 Escrever README.md;
-Finalizar shell script;
-Finalizar dockerfile;
-Pegar acesso a devmedia com plus gratis de 7 dias;
-Ver ensinamentos dos caras sobre container;
-Subir container para Heroku, apontando para o banco da aplicação.
