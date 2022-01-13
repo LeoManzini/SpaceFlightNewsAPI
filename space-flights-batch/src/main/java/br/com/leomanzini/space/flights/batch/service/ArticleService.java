@@ -3,15 +3,13 @@ package br.com.leomanzini.space.flights.batch.service;
 import br.com.leomanzini.space.flights.batch.exceptions.*;
 import br.com.leomanzini.space.flights.batch.model.Article;
 import br.com.leomanzini.space.flights.batch.model.ArticleControl;
-import br.com.leomanzini.space.flights.batch.repository.ArticleControlCrudRepository;
-import br.com.leomanzini.space.flights.batch.repository.ArticleRepository;
-import br.com.leomanzini.space.flights.batch.repository.EventsRepository;
-import br.com.leomanzini.space.flights.batch.repository.LaunchesRepository;
+import br.com.leomanzini.space.flights.batch.repository.*;
 import br.com.leomanzini.space.flights.batch.utils.beans.FilesWriter;
 import br.com.leomanzini.space.flights.batch.utils.beans.ModelMapperMethods;
 import br.com.leomanzini.space.flights.batch.utils.beans.SpaceFlightsApi;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemCodes;
 import br.com.leomanzini.space.flights.batch.utils.enums.SystemMessages;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class ArticleService {
 
     private static final Logger log = LoggerFactory.getLogger(ArticleService.class);
@@ -41,18 +40,7 @@ public class ArticleService {
     @Autowired
     private final LaunchesRepository launchesRepository;
     @Autowired
-    private final ArticleControlCrudRepository articleControlCrudRepository;
-
-    public ArticleService(ModelMapperMethods mapper, SpaceFlightsApi apiMethods, FilesWriter filesWriter, EmailService emailService, ArticleRepository articleRepository, EventsRepository eventsRepository, LaunchesRepository launchesRepository, ArticleControlCrudRepository articleControlCrudRepository) {
-        this.mapper = mapper;
-        this.apiMethods = apiMethods;
-        this.filesWriter = filesWriter;
-        this.emailService = emailService;
-        this.articleRepository = articleRepository;
-        this.eventsRepository = eventsRepository;
-        this.launchesRepository = launchesRepository;
-        this.articleControlCrudRepository = articleControlCrudRepository;
-    }
+    private final ArticleControlRepository articleControlCrudRepository;
 
     public void executeDatabaseUpdateRoutine() throws UpdateRoutineException {
         ArticleControl databaseArticleControl = null;
@@ -64,11 +52,12 @@ public class ArticleService {
 
             databaseArticleControl = articleControlCrudRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
                     new RegisterNotFoundException(SystemMessages.DATABASE_NOT_FOUND.getMessage()));
+            Long databaseExcludedControl = articleControlCrudRepository.apiDeletedArticlesCount(SystemCodes.ARTICLES_CONTROL_ID.getCode());
 
-            log.info("Database articles count: " + databaseArticleControl.getArticleCount());
+            log.info("Database articles count: " + (databaseArticleControl.getArticleCount() + databaseExcludedControl));
             databaseLastId = databaseArticleControl.getLastArticleId();
 
-            if (countApiArticles > databaseArticleControl.getArticleCount()) {
+            if (countApiArticles > (databaseArticleControl.getArticleCount() + databaseExcludedControl)) {
                 log.info("Starting database update");
                 List<Article> articlesToPersist = new ArrayList<>();
                 int errorCount = 0;
@@ -197,7 +186,7 @@ public class ArticleService {
     }
 
     private void updateArticleControl(ArticleControl databaseArticleControl, Long countApiArticles, Long lastId) {
-        databaseArticleControl.setArticleCount(--countApiArticles);
+        databaseArticleControl.setArticleCount(countApiArticles);
         databaseArticleControl.setLastArticleId(lastId);
         articleControlCrudRepository.save(databaseArticleControl);
 
