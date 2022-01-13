@@ -1,10 +1,10 @@
 FROM openjdk:11
 
-WORKDIR /apps/artifacts/api
+WORKDIR /apps/artifacts/batch
 
-COPY artifacts/SpaceFlightNews.jar /apps/artifacts/api
+COPY artifacts/SpaceFlightsBatch.jar /apps/artifacts/batch
 
-ENTRYPOINT ["java", "-jar", "SpaceFlightNews.jar"]
+ENTRYPOINT ["java", "-jar", "SpaceFlightsBatch.jar"]
 
 # Add crontab file in the cron directory
 ADD crontab /etc/cron.d/hello-cron
