@@ -1,3 +1,11 @@
+FROM openjdk:11
+
+WORKDIR /apps/artifacts/api
+
+COPY artifacts/SpaceFlightNews.jar /apps/artifacts/api
+
+ENTRYPOINT ["java", "-jar", "SpaceFlightNews.jar"]
+
 #FROM ubuntu:latest
 
 # Add crontab file in the cron directory
@@ -16,3 +24,4 @@
 
 # Run the command on container startup
 #CMD cron && tail -f /var/log/cron.log
+
