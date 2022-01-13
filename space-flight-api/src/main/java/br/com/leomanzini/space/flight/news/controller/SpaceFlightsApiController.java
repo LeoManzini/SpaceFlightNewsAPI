@@ -5,6 +5,7 @@ import br.com.leomanzini.space.flight.news.dto.ResponseEntityDTO;
 import br.com.leomanzini.space.flight.news.exceptions.ArticleAlreadyAtDatabaseException;
 import br.com.leomanzini.space.flight.news.exceptions.ArticleNotFoundException;
 import br.com.leomanzini.space.flight.news.service.ArticleService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,14 +17,11 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/articles")
+@AllArgsConstructor
 public class SpaceFlightsApiController {
 
     @Autowired
     private final ArticleService articleService;
-
-    public SpaceFlightsApiController(ArticleService articleService) {
-        this.articleService = articleService;
-    }
 
     @GetMapping
     @ResponseStatus(HttpStatus.FOUND)
