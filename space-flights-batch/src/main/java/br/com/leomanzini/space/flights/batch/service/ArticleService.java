@@ -60,7 +60,6 @@ public class ArticleService {
             if (countApiArticles > (databaseArticleControl.getArticleCount() + databaseExcludedControl)) {
                 log.info("Starting database update");
                 List<Article> articlesToPersist = new ArrayList<>();
-                int errorCount = 0;
 
                 while (true) {
                     Article newArticle = mapper.dtoToEntity(apiMethods.getSpaceFlightsArticlesById(++databaseLastId));
