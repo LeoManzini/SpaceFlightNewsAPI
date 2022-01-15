@@ -43,21 +43,20 @@ public class ArticleService {
     private final ArticleControlRepository articleControlCrudRepository;
 
     public void executeDatabaseUpdateRoutine() throws UpdateRoutineException {
-        ArticleControl databaseArticleControl = null;
+        Long databaseArticlesControl = 0L;
         Long databaseLastId = 0L;
         String mailMessage = "";
         try {
             Integer countApiArticles = apiMethods.getSpaceFlightsArticlesCount();
             log.info("API articles count: " + countApiArticles);
 
-            databaseArticleControl = articleControlCrudRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow(() ->
-                    new RegisterNotFoundException(SystemMessages.DATABASE_NOT_FOUND.getMessage()));
-            Long databaseExcludedControl = articleControlCrudRepository.apiDeletedArticlesCount(SystemCodes.ARTICLES_CONTROL_ID.getCode());
+            databaseArticlesControl = (articleControlCrudRepository.apiDeletedArticlesCount() + articleControlCrudRepository.apiDeletedArticlesCount());
 
-            log.info("Database articles count: " + (databaseArticleControl.getArticleCount() + databaseExcludedControl));
-            databaseLastId = databaseArticleControl.getLastArticleId();
+            log.info("Database articles count: " + databaseArticlesControl);
+            ArticleControl articleControl = articleControlCrudRepository.findById(SystemCodes.ARTICLES_CONTROL_ID.getCode()).orElseThrow();
+            databaseLastId = articleControl.getLastArticleId();
 
-            if (countApiArticles > (databaseArticleControl.getArticleCount() + databaseExcludedControl)) {
+            if (countApiArticles > databaseArticlesControl) {
                 log.info("Starting database update");
                 List<Article> articlesToPersist = new ArrayList<>();
 
@@ -92,8 +91,8 @@ public class ArticleService {
         } finally {
             log.info("Sending report email");
             emailService.sendEmail(mailMessage);
-            assert databaseArticleControl != null;
-            updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), databaseLastId);
+            assert databaseArticlesControl != null;
+            updateArticleControl(databaseArticlesControl, databaseLastId);
         }
     }
 
@@ -142,7 +141,7 @@ public class ArticleService {
             log.info("Sending report email");
             emailService.sendEmail(mailMessage);
             assert databaseArticleControl != null;
-            updateArticleControl(databaseArticleControl, articleControlCrudRepository.apiArticlesCount(), articlesIdCounter);
+            updateArticleControl(articleControlCrudRepository.apiArticlesCount(), articlesIdCounter);
         }
     }
 
@@ -184,10 +183,11 @@ public class ArticleService {
         }
     }
 
-    private void updateArticleControl(ArticleControl databaseArticleControl, Long countApiArticles, Long lastId) {
-        databaseArticleControl.setArticleCount(countApiArticles);
-        databaseArticleControl.setLastArticleId(lastId);
-        articleControlCrudRepository.save(databaseArticleControl);
+    private void updateArticleControl(Long countApiArticles, Long lastId) {
+        articleControlCrudRepository.save(ArticleControl.builder()
+                .id(SystemCodes.ARTICLES_CONTROL_ID.getCode())
+                .articleCount(countApiArticles)
+                .lastArticleId(lastId).build());
 
         log.info("Articles count " + countApiArticles.toString());
         log.info("Article control table updated successfully");

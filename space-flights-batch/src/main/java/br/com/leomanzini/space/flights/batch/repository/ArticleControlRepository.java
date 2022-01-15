@@ -12,5 +12,5 @@ public interface ArticleControlRepository extends JpaRepository<ArticleControl, 
     Long apiArticlesCount();
 
     @Query("SELECT COUNT(a) FROM ArticleDeleteControl a")
-    Long apiDeletedArticlesCount(Long code);
+    Long apiDeletedArticlesCount();
 }
